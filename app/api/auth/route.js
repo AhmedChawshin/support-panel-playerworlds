@@ -4,13 +4,19 @@ import { generateToken } from '../../../utils/auth';
 
 export async function POST(req) {
   const db = await connectToDatabase();
-  const { email, code } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch (error) {
+    return new Response(JSON.stringify({ message: 'Invalid request body' }), { status: 400 });
+  }
+
+  const { email, code } = body;
 
   if (!email || (!code && typeof code !== 'undefined')) {
     return new Response(JSON.stringify({ message: 'Email and optional code required' }), { status: 400 });
   }
 
-  // Sanitize and validate email
   const normalizedEmail = email.trim().toLowerCase();
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(normalizedEmail)) {
@@ -28,16 +34,25 @@ export async function POST(req) {
     }
   } else {
     const savedCode = await db.collection('auth_codes').findOne({ email: normalizedEmail, code });
-    if (savedCode && (new Date() - new Date(savedCode.createdAt)) < 15 * 60 * 1000) {
-      const user = (await db.collection('users').findOne({ email: normalizedEmail })) || { role: 'user' };
-      await db.collection('users').updateOne(
-        { email: normalizedEmail },
-        { $set: { email: normalizedEmail, role: user.role || 'user', lastLogin: new Date() } },
-        { upsert: true }
-      );
-      const token = generateToken(normalizedEmail, user.role);
-      return new Response(JSON.stringify({ message: 'Authenticated', token }), { status: 200 });
+    if (!savedCode) {
+      return new Response(JSON.stringify({ message: 'Invalid or expired code' }), { status: 401 });
     }
-    return new Response(JSON.stringify({ message: 'Invalid or expired code' }), { status: 401 });
+    if ((new Date() - new Date(savedCode.createdAt)) >= 15 * 60 * 1000) {
+      return new Response(JSON.stringify({ message: 'Code expired' }), { status: 401 });
+    }
+
+    const user = (await db.collection('users').findOne({ email: normalizedEmail })) || { role: 'user' };
+    await db.collection('users').updateOne(
+      { email: normalizedEmail },
+      { $set: { email: normalizedEmail, role: user.role || 'user', lastLogin: new Date() } },
+      { upsert: true }
+    );
+    const token = generateToken(normalizedEmail, user.role);
+    return new Response(JSON.stringify({ message: 'Authenticated', token }), { status: 200 });
   }
+}
+
+// Optional: Handle GET if needed (e.g., for testing), but not required for auth flow
+export async function GET() {
+  return new Response(JSON.stringify({ message: 'Method not allowed' }), { status: 405 });
 }
