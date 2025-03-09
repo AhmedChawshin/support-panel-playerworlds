@@ -4,17 +4,16 @@ let transporter;
 
 async function initializeTransporter() {
   // Use Ethereal's test account for development
-  const testAccount = await nodemailer.createTestAccount();
+  // const testAccount = await nodemailer.createTestAccount();
   transporter = nodemailer.createTransport({
     host: 'smtp.ethereal.email',
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
-      user: testAccount.user, // Ethereal test user
-      pass: testAccount.pass, // Ethereal test password
+      user: process.env.EMAIL_USER, // Ethereal test user
+      pass: process.env.EMAIL_PASS, // Ethereal test password
     },
   });
-  console.log('Ethereal credentials:', { user: testAccount.user, pass: testAccount.pass });
   return transporter;
 }
 

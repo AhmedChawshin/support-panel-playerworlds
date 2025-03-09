@@ -3,7 +3,8 @@
 import { Box, Flex, HStack, Button, Heading, IconButton, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { FaTicketAlt, FaBars } from 'react-icons/fa';
+import { FaBars } from 'react-icons/fa';
+import Image from 'next/image'
 
 export default function NavBar() {
   const router = useRouter();
@@ -51,17 +52,19 @@ export default function NavBar() {
   color="gray.50"
   _hover={{ color: 'teal.400' }}
 >
-  <img
-    src="https://home.graalonline.com/images/logograalonline.png"
-    alt="Logo"
-    
-    style={{
-      transition: 'transform 0.2s ease-in-out',
-      height: '70px',
-    }}
-    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.1)')}
-    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-  />
+<Image
+  src="/images/logograalonline.png" // Use an absolute path
+  alt="Logo"
+  draggable="false"
+  width={100}
+  height={70}
+  style={{
+    transition: 'transform 0.2s ease-in-out',
+  }}
+  onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.1)')}
+  onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+/>
+
 </Heading>
 
         </HStack>
