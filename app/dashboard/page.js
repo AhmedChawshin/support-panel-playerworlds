@@ -6,20 +6,27 @@ import { useState, useEffect } from 'react';
 
 export default function Dashboard() {
   const [token, setToken] = useState(null);
+  const [isTokenChecked, setIsTokenChecked] = useState(false); // Track if token has been checked
   const router = useRouter();
 
   // Fetch token only on the client side
   useEffect(() => {
     const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     setToken(storedToken);
+    setIsTokenChecked(true); // Mark token check as complete
   }, []);
 
   // Redirect if token is not available
   useEffect(() => {
-    if (!token) router.push('/');
-  }, [token, router]);
+    if (isTokenChecked && !token) {
+      router.push('/');
+    }
+  }, [isTokenChecked, token, router]);
 
-  if (!token) return null; // Prevent rendering until the token is set
+  // Prevent rendering until the token is checked
+  if (!isTokenChecked) {
+    return null;
+  }
 
   return (
     <Box p={10} minH="calc(100vh - 72px)">
