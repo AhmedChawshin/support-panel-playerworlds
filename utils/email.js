@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 let transporter;
 
 async function initializeTransporter() {
-  // Use Ethereal's test account for development
+  // Using Ethereal's test account for development
   // const testAccount = await nodemailer.createTestAccount();
   transporter = nodemailer.createTransport({
     host: 'smtp.ethereal.email',
