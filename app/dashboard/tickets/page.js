@@ -12,6 +12,7 @@ export default function Tickets() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [token, setToken] = useState(null);
+  const [isTokenChecked, setIsTokenChecked] = useState(false); // Track if token has been checked
   const toast = useToast();
   const ticketsPerPage = 10;
 
@@ -19,14 +20,22 @@ export default function Tickets() {
     // Ensure this runs only on the client
     const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     setToken(storedToken);
+    setIsTokenChecked(true); // Mark token check as complete
   }, []);
 
   useEffect(() => {
     if (!token) return;
-    
+
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     fetchTickets();
   }, [token, page]);
+
+  useEffect(() => {
+    // Redirect only after token has been checked and is null
+    if (isTokenChecked && !token) {
+      redirect('/');
+    }
+  }, [isTokenChecked, token]);
 
   const fetchTickets = async () => {
     setLoading(true);
@@ -48,8 +57,8 @@ export default function Tickets() {
     }
   };
 
-  if (typeof window !== 'undefined' && !token) {
-    redirect('/');
+  // Render nothing until token check is complete
+  if (!isTokenChecked) {
     return null;
   }
 
