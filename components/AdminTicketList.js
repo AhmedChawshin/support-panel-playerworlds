@@ -10,7 +10,7 @@ import {
   Text,
   VStack,
   Badge,
-  Input,
+  Textarea,
   Button,
   useToast,
   HStack,
@@ -113,7 +113,7 @@ export default function AdminTicketList({ tickets, userEmail, onReply }) {
           </AccordionButton>
           <AccordionPanel pb={6} pt={4} bg="gray.800" borderRadius="lg">
             <VStack align="start" spacing={4} divider={<StackDivider borderColor="gray.700" />}>
-              <Text color="gray.50">{ticket.description}</Text>
+              <Text color="gray.50" whiteSpace="pre-wrap">{ticket.description}</Text>
               {ticket.replies?.length > 0 && (
                 <VStack w="full" spacing={3}>
                   {ticket.replies.map((reply, index) => (
@@ -130,18 +130,20 @@ export default function AdminTicketList({ tickets, userEmail, onReply }) {
                         {reply.by === userEmail ? 'You' : reply.by === ticket.email ? 'User' : `Support (${reply.by})`} •{' '}
                         {new Date(reply.date).toLocaleString()}
                       </Text>
-                      <Text color="gray.50">{reply.text}</Text>
+                      <Text color="gray.50" whiteSpace="pre-wrap">{reply.text}</Text>
                     </Box>
                   ))}
                 </VStack>
               )}
               {ticket.status !== 'closed' && (
                 <VStack w="full" spacing={3}>
-                  <Input
+                  <Textarea
                     placeholder="Add a reply..."
                     value={replies[ticket._id] || ''}
                     onChange={(e) => handleReplyChange(ticket._id, e.target.value)}
                     size="md"
+                    minH="100px"
+                    resize="vertical"
                     focusBorderColor="teal.400"
                   />
                   <HStack w="full" justify="space-between">

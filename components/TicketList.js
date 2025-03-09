@@ -10,7 +10,7 @@ import {
   Text,
   VStack,
   Badge,
-  Input,
+  Textarea,
   Button,
   useToast,
   HStack,
@@ -34,7 +34,7 @@ export default function TicketList({ tickets, userEmail, onReply }) {
       return;
     }
     try {
-      await axios.put('/api/tickets', { ticketId, response: replyText }); // Triggers PUT with status: 'open' for users
+      await axios.put('/api/tickets', { ticketId, response: replyText });
       toast({ title: 'Reply sent', status: 'success', position: 'top' });
       setReplies((prev) => ({ ...prev, [ticketId]: '' }));
       onReply();
@@ -84,7 +84,13 @@ export default function TicketList({ tickets, userEmail, onReply }) {
               </Text>
             </Box>
             <Badge
-              colorScheme={ticket.status === 'closed' ? 'red' : ticket.replies?.length > 0 ? 'teal' : 'gray'}
+              colorScheme={
+                ticket.status === 'closed'
+                  ? 'red'
+                  : ticket.status === 'Waiting for user response'
+                  ? 'teal'
+                  : 'gray'
+              }
               ml={2}
               px={2}
               py={1}
@@ -96,7 +102,7 @@ export default function TicketList({ tickets, userEmail, onReply }) {
           </AccordionButton>
           <AccordionPanel pb={6} pt={4} bg="gray.800" borderRadius="lg">
             <VStack align="start" spacing={4} divider={<StackDivider borderColor="gray.700" />}>
-              <Text color="gray.50">{ticket.description}</Text>
+              <Text color="gray.50" whiteSpace="pre-wrap">{ticket.description}</Text>
               {ticket.replies?.length > 0 && (
                 <VStack w="full" spacing={3}>
                   {ticket.replies.map((reply, index) => (
@@ -112,18 +118,20 @@ export default function TicketList({ tickets, userEmail, onReply }) {
                       <Text fontSize="sm" color="gray.400">
                         {reply.by === userEmail ? 'You' : 'Support'} • {new Date(reply.date).toLocaleString()}
                       </Text>
-                      <Text color="gray.50">{reply.text}</Text>
+                      <Text color="gray.50" whiteSpace="pre-wrap">{reply.text}</Text>
                     </Box>
                   ))}
                 </VStack>
               )}
               {ticket.status !== 'closed' && (
                 <VStack w="full" spacing={3}>
-                  <Input
+                  <Textarea
                     placeholder="Add a reply..."
                     value={replies[ticket._id] || ''}
                     onChange={(e) => handleReplyChange(ticket._id, e.target.value)}
                     size="md"
+                    minH="100px" // Set a minimum height for better UX
+                    resize="vertical" // Allow vertical resizing
                   />
                   <HStack w="full" justify="space-between">
                     <Button
