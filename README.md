@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GraalOnline Playerworlds - Support Ticket System (Prototype)
 
-## Getting Started
+This is a prototype for handling support tickets in **GraalOnline Playerworlds**. It is not a finished product but serves as a foundation for future development.
 
-First, run the development server:
+---
+
+## 🚀 Getting Started
+
+To begin development, install dependencies and start the server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install    # Install dependencies
+npm run dev    # Start development server
+npm run build  # Build for production
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🔧 Environment Configuration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create an environment file `.env.local` in the root directory and populate it with the following variables:
 
-## Learn More
+```ini
+MONGODB_URI=your_mongodb_connection_string
+EMAIL_USER=uhutr3rieypitebg@ethereal.email  # Example from ethereal.email
+EMAIL_PASS=K2gT1q5K3T8TGcfbsX
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url
+```
 
-To learn more about Next.js, take a look at the following resources:
+Ensure all credentials are secure and never share them publicly.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📸 Screenshots
 
-## Deploy on Vercel
+### 🔑 Login Page  
+![Login Page](https://i.imgur.com/QEqCHoB.png)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 🔐 2FA Authentication  
+![2FA Page](https://i.imgur.com/03nEpvj.png)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 📊 User Dashboard  
+![Dashboard Page](https://i.imgur.com/gfelMfw.png)
+
+### 🎫 All Tickets View  
+![All tickets](https://i.imgur.com/Q2PkJZ1.png)
+
+### ✉️ Replying to Tickets  
+![Reply to tickets](https://i.imgur.com/YkEcwzn.png)
+
+### 📝 Creating a Ticket  
+![Create a ticket](https://i.imgur.com/2cq9wOO.png)
+
+### 🛠 Admin Dashboard  
+![Admin dashboard](https://i.imgur.com/AGbMOwM.png)
+
+---
+
+## 🛠 Features 
+
+- **User Authentication** (Login, 2FA support)
+- **Create, View & Manage Tickets**
+- **Admin Dashboard for ticket handling**
+- **Email & Discord Webhook Integration**
+- **MongoDB for Data storage**
+
+---
+
+## 📌 Notes
+
+- This is a **work-in-progress** prototype and not intended for production use yet.
+- Future updates will improve security, usability, and additional integrations.
+
+For questions or contributions, feel free to reach out!
+
+---
