@@ -86,7 +86,7 @@ export const sendCodeEmail = async (email, code) => {
   const baseUrl = `${process.env.WEBPAGE_URL || 'http://localhost:3000'}`; // Adjust base URL as needed
 
   
-  const authEmailContent = `
+  const htmlContent = `
   <!DOCTYPE html>
   <html>
   <head>

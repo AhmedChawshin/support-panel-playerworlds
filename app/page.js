@@ -120,7 +120,6 @@ export default function Home() {
           borderColor="gray.700"
           animation={`${fadeIn} 1.2s ease-out`}
           transition="all 0.3s ease"
-          _hover={{ boxShadow: '0 8px 24px rgba(0, 128, 128, 0.2)', transform: 'translateY(-2px)' }}
         >
           <LoginForm onLogin={handleLogin} />
         </Box>
