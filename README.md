@@ -24,7 +24,8 @@ Create an environment file `.env.local` in the root directory and populate it wi
 MONGODB_URI=your_mongodb_connection_string
 EMAIL_USER=uhutr3rieypitebg@ethereal.email  # Example from ethereal.email
 EMAIL_PASS=K2gT1q5K3T8TGcfbsX
-DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url #webhook for new tickets and replys from users
+JWT_SECRET=YOUR_SECRET_KEY #secret for authentication 
 ```
 
 Ensure all credentials are secure and never share them publicly.
