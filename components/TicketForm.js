@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import axios from 'axios';
 
-export default function TicketForm({ userEmail, onTicketCreated }) {
+export default function TicketForm({ userEmail }) {
   const [graalid, setGraalid] = useState('');
   const [type, setType] = useState('');
   const [title, setTitle] = useState('');
@@ -35,7 +35,6 @@ export default function TicketForm({ userEmail, onTicketCreated }) {
       setType('');
       setTitle('');
       setDescription('');
-      onTicketCreated();
     } catch (error) {
       toast({ title: 'Error', description: error.response?.data?.message || error.message, status: 'error' });
     } finally {

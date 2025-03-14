@@ -5,6 +5,7 @@ import { ObjectId } from 'mongodb';
 import { authMiddleware } from '../../../utils/middleware';
 
 const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+const baseUrl = process.env.WEBPAGE_URL || 'http://localhost:3000'; 
 
 export const POST = authMiddleware(async (req) => {
   const db = await connectToDatabase();
@@ -22,6 +23,7 @@ export const POST = authMiddleware(async (req) => {
     createdAt: new Date(),
     replies: [],
     status: 'open',
+    assignedAdmin: null,
   };
   const result = await db.collection('tickets').insertOne(ticket);
 
@@ -29,24 +31,16 @@ export const POST = authMiddleware(async (req) => {
     embeds: [
       {
         title: "🎟️ New Ticket Created",
-        color: 3447003, // Blue color
+        color: 3447003,
         fields: [
-          {
-            name: "📌 Ticket ID",
-            value: `#${result.insertedId}`,
-            inline: true
-          },
-          {
-            name: "👤 Created by",
-            value: req.user.email,
-            inline: true
-          }
+          { name: "📌 Ticket ID", value: `#${result.insertedId}`, inline: true },
+          { name: "👤 Created by", value: req.user.email, inline: true },
         ],
-        timestamp: new Date().toISOString() // Adds timestamp
-      }
-    ]
+        url: `${baseUrl}/admin/tickets/${result.insertedId}`, // Link to ticket
+        timestamp: new Date().toISOString(),
+      },
+    ],
   });
-  
 
   return new Response(JSON.stringify({ message: 'Ticket created', ticketId: result.insertedId }), { status: 201 });
 });
@@ -55,15 +49,27 @@ export const GET = authMiddleware(async (req) => {
   const db = await connectToDatabase();
   const url = new URL(req.url, `http://${req.headers.host}`);
   const searchParams = url.searchParams;
+  const ticketId = searchParams.get('ticketId');
   const page = parseInt(searchParams.get('page') || '1', 10);
   const limit = parseInt(searchParams.get('limit') || '10', 10);
-  const search = searchParams.get('search') || ''; // Unified search param
+  const search = searchParams.get('search') || '';
   const sort = searchParams.get('sort') || 'newest';
-  const allTickets = searchParams.get('allTickets') === 'true' && req.user.role === 'admin';
+  const allTickets = searchParams.get('allTickets') === 'true' && (req.user.role === 'admin' || req.user.role === 'superadmin');
 
   const dbUser = await db.collection('users').findOne({ email: req.user.email.trim().toLowerCase() });
   if (!dbUser) {
     return new Response(JSON.stringify({ message: 'User not found in database' }), { status: 403 });
+  }
+
+  if (ticketId) {
+    if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+      return new Response(JSON.stringify({ message: 'Forbidden' }), { status: 403 });
+    }
+    const ticket = await db.collection('tickets').findOne({ _id: new ObjectId(ticketId) });
+    if (!ticket) {
+      return new Response(JSON.stringify({ message: 'Ticket not found' }), { status: 404 });
+    }
+    return new Response(JSON.stringify({ ticket }), { status: 200 });
   }
 
   const skip = (page - 1) * limit;
@@ -74,8 +80,8 @@ export const GET = authMiddleware(async (req) => {
     query = {};
     if (search) {
       query.$or = [
-        { email: { $regex: search, $options: 'i' } }, // Case-insensitive partial match for email
-        { graalid: { $regex: search, $options: 'i' } }, // Case-insensitive partial match for graalid
+        { email: { $regex: search, $options: 'i' } },
+        { graalid: { $regex: search, $options: 'i' } },
       ];
     }
   }
@@ -107,14 +113,20 @@ export const PUT = authMiddleware(async (req) => {
   if (!ticket) {
     return new Response(JSON.stringify({ message: 'Ticket not found' }), { status: 404 });
   }
-  if (ticket.email !== dbUser.email && dbUser.role !== 'admin') {
+  if (ticket.email !== dbUser.email && dbUser.role !== 'admin' && dbUser.role !== 'superadmin') {
     return new Response(JSON.stringify({ message: 'Forbidden' }), { status: 403 });
   }
 
   let update = { $set: { updatedAt: new Date() } };
+
+  if ((dbUser.role === 'admin' || dbUser.role === 'superadmin') && !ticket.assignedAdmin) {
+    update.$set.assignedAdmin = dbUser.email;
+  }
+
   if (response) {
-    update.$push = { replies: { text: response, by: dbUser.email, date: new Date() } };
-    update.$set.status = dbUser.role === 'admin' ? 'Waiting for user response' : 'open'; // User reply sets to 'open'
+    const replyBy = dbUser.role === 'admin' || dbUser.role === 'superadmin' ? 'Support' : dbUser.email;
+    update.$push = { replies: { text: response, by: replyBy, date: new Date() } };
+    update.$set.status = dbUser.role === 'admin' || dbUser.role === 'superadmin' ? 'Waiting for user response' : 'open';
   }
   if (status) {
     update.$set.status = status;
@@ -127,36 +139,23 @@ export const PUT = authMiddleware(async (req) => {
   );
 
   if (response) {
-    if (dbUser.email === ticket.email) {
-      if(dbUser.role == "user") {
-        await axios.post(webhookUrl, {
-          embeds: [
-            {
-              title: "💬 New Ticket Reply",
-              color: 3447003, // Blue color
-              fields: [
-                {
-                  name: "📌 Ticket ID",
-                  value: `#${ticketId}`,
-                  inline: true
-                },
-                {
-                  name: "👤 Replied by",
-                  value: dbUser.email,
-                  inline: true
-                },
-                {
-                  name: "📝 Response",
-                  value: response
-                }
-              ],
-              timestamp: new Date().toISOString() // Adds timestamp
-            }
-          ]
-        });
-        
-      }
-    } else {
+    if (dbUser.email === ticket.email && dbUser.role === 'user') {
+      await axios.post(webhookUrl, {
+        embeds: [
+          {
+            title: "💬 New Ticket Reply",
+            color: 3447003,
+            fields: [
+              { name: "📌 Ticket ID", value: `#${ticketId}`, inline: true },
+              { name: "👤 Replied by", value: dbUser.email, inline: true },
+              { name: "📝 Response", value: response },
+            ],
+            url: `${baseUrl}/admin/tickets/${ticketId}`, // Link to ticket
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      });
+    } else if (dbUser.role === 'admin' || dbUser.role === 'superadmin') {
       await sendTicketUpdateEmail(ticket.email, ticketId);
     }
   }

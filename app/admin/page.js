@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   VStack,
@@ -16,10 +16,9 @@ import {
 } from '@chakra-ui/react';
 import AdminTicketList from '../../components/AdminTicketList';
 import axios from 'axios';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export default function AdminDashboard() {
-  const [isClient, setIsClient] = useState(false);
   const [tickets, setTickets] = useState([]);
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,31 +27,41 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [token, setToken] = useState(null);
   const toast = useToast();
-  const ticketsPerPage = 10;
+  const router = useRouter();
 
   useEffect(() => {
-    // Ensure this runs only on the client side
-    setIsClient(true);
-    const token = localStorage.getItem('token');
-    if (!token) redirect('/');
+    if (typeof window === 'undefined') return;
 
-    const user = require('jsonwebtoken').decode(token);
-    if (user.role !== 'admin') redirect('/');
+    const storedToken = localStorage.getItem('token');
+    if (!storedToken) {
+      router.push('/');
+      return;
+    }
 
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setToken(storedToken);
+    const user = require('jsonwebtoken').decode(storedToken);
+    if (!user || !['admin', 'superadmin'].includes(user.role)) {
+      router.push('/');
+      return;
+    }
+
+    axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
     fetchTickets();
-  }, [page]);
+  }, [router, page, sortOrder, searchQuery]);
 
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await axios.get('/api/tickets', {
-        params: { page, limit: ticketsPerPage, search: searchQuery, sort: sortOrder, allTickets: true },
+        params: { page, limit: 10, search: searchQuery, sort: sortOrder, allTickets: true },
       });
       setTickets(data.tickets);
-      setTotalPages(Math.ceil(data.total / ticketsPerPage));
-      applyFilters(data.tickets);
+      setTotalPages(Math.ceil(data.total / 10));
+      // Apply filter immediately after fetch
+      const filtered = statusFilter === 'all' ? data.tickets : data.tickets.filter((ticket) => ticket.status === statusFilter);
+      setFilteredTickets(filtered);
     } catch (error) {
       toast({
         title: 'Error',
@@ -63,25 +72,19 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
+  }, [page, sortOrder, searchQuery, statusFilter, toast]);
+
+  const handleFilterChange = (e) => {
+    const newStatus = e.target.value;
+    setStatusFilter(newStatus);
+    // Apply filter immediately to current tickets
+    const filtered = newStatus === 'all' ? tickets : tickets.filter((ticket) => ticket.status === newStatus);
+    setFilteredTickets(filtered);
   };
 
-  const applyFilters = (ticketData) => {
-    let result = [...ticketData];
-    if (statusFilter !== 'all') {
-      result = result.filter((ticket) => ticket.status === statusFilter);
-    }
-    setFilteredTickets(result);
-  };
-
-  const handleFilterChange = (status) => {
-    setStatusFilter(status);
-    applyFilters(tickets);
-  };
-
-  const handleSortChange = (sort) => {
-    setSortOrder(sort);
+  const handleSortChange = (e) => {
+    setSortOrder(e.target.value);
     setPage(1);
-    fetchTickets();
   };
 
   const handleSearchChange = (e) => {
@@ -90,20 +93,16 @@ export default function AdminDashboard() {
 
   const handleSearch = () => {
     setPage(1);
-    fetchTickets();
   };
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
-    fetchTickets();
   };
 
-  if (!isClient) {
-    // Render nothing or a loading spinner until the client-side check is complete
-    return null;
-  }
+  if (token === null) return null;
 
-  const user = require('jsonwebtoken').decode(localStorage.getItem('token'));
+  const user = require('jsonwebtoken').decode(token);
+  if (!user || !['admin', 'superadmin'].includes(user.role)) return null;
 
   return (
     <Box p={10} minH="calc(100vh - 72px)" bg="gray.900">
@@ -111,6 +110,16 @@ export default function AdminDashboard() {
         <Heading size="xl" textAlign="center" color="gray.50">
           Admin Dashboard
         </Heading>
+        {user.role === 'superadmin' && (
+          <Button
+            colorScheme="teal"
+            size="md"
+            onClick={() => router.push('/admin/users')}
+            alignSelf="flex-start"
+          >
+            Manage Users
+          </Button>
+        )}
         <Flex
           direction={{ base: 'column', md: 'row' }}
           justify="space-between"
@@ -129,13 +138,12 @@ export default function AdminDashboard() {
             </Text>
             <Select
               value={statusFilter}
-              onChange={(e) => handleFilterChange(e.target.value)}
+              onChange={handleFilterChange}
               size="sm"
               w={{ base: 'full', md: '200px' }}
               bg="gray.700"
               borderColor="gray.600"
               color="gray.50"
-              _focus={{ borderColor: 'teal.400' }}
             >
               <option value="all">All</option>
               <option value="open">Open</option>
@@ -149,13 +157,12 @@ export default function AdminDashboard() {
             </Text>
             <Select
               value={sortOrder}
-              onChange={(e) => handleSortChange(e.target.value)}
+              onChange={handleSortChange}
               size="sm"
               w={{ base: 'full', md: '200px' }}
               bg="gray.700"
               borderColor="gray.600"
               color="gray.50"
-              _focus={{ borderColor: 'teal.400' }}
             >
               <option value="newest">Newest</option>
               <option value="oldest">Oldest</option>
@@ -170,7 +177,6 @@ export default function AdminDashboard() {
               bg="gray.700"
               borderColor="gray.600"
               color="gray.50"
-              _focus={{ borderColor: 'teal.400' }}
             />
             <Button size="sm" colorScheme="teal" onClick={handleSearch}>
               Search

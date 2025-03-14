@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   VStack,
   Heading,
@@ -9,7 +9,7 @@ import {
   Text,
   useToast,
   Box,
-  Center,
+  HStack,
 } from '@chakra-ui/react';
 import axios from 'axios';
 
@@ -17,12 +17,12 @@ export default function LoginForm({ onLogin }) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [step, setStep] = useState('email');
+  const [resendCooldown, setResendCooldown] = useState(0); // Cooldown in seconds
   const toast = useToast();
 
   // Restrict email input to valid characters and no spaces
   const handleEmailChange = (e) => {
     const value = e.target.value;
-    // Allow only letters, numbers, @, ., -, _, and +
     const sanitizedValue = value.replace(/[^a-zA-Z0-9@.\-_+]/g, '');
     setEmail(sanitizedValue);
   };
@@ -33,7 +33,8 @@ export default function LoginForm({ onLogin }) {
     return emailRegex.test(email);
   };
 
-  const handleEmailSubmit = async () => {
+  // Handle sending the initial email or resending
+  const handleEmailSubmit = async (isResend = false) => {
     if (!isValidEmail()) {
       toast({
         title: 'Invalid email',
@@ -45,8 +46,15 @@ export default function LoginForm({ onLogin }) {
     }
     try {
       await axios.post('/api/auth', { email });
-      setStep('code');
-      toast({ title: 'Code sent', status: 'success', position: 'top' });
+      if (!isResend) {
+        setStep('code'); // Only change step on initial send
+      }
+      setResendCooldown(60); // Start 60-second cooldown
+      toast({
+        title: isResend ? 'Code resent' : 'Code sent',
+        status: 'success',
+        position: 'top',
+      });
     } catch (error) {
       toast({
         title: 'Error',
@@ -68,62 +76,74 @@ export default function LoginForm({ onLogin }) {
     }
   };
 
+  // Cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer); // Cleanup on unmount or when cooldown changes
+    }
+  }, [resendCooldown]);
+
   return (
-    <Center minH="calc(100vh - 72px)" px={4}>
-      <Box
-        as="form"
-        w="full"
-        maxW="sm"
-        bg="gray.800"
-        borderRadius="lg"
-        boxShadow="lg"
-        p={6}
-        border="1px"
-        borderColor="gray.700"
-        onSubmit={(e) => {
-          e.preventDefault();
-          step === 'email' ? handleEmailSubmit() : handleCodeSubmit();
-        }}
-      >
-        <VStack spacing={6}>
-          <Heading size="lg" textAlign="center" color="gray.50">
-            Sign In
-          </Heading>
-          {step === 'email' ? (
-            <>
-              <Input
-                placeholder="Email address"
-                value={email}
-                onChange={handleEmailChange}
-                size="md"
-                focusBorderColor="teal.400"
-                autoComplete="email"
-                pattern="[a-zA-Z0-9@.\-_+]+" // HTML5 pattern for extra layer
-                title="Only letters, numbers, @, ., -, _, and + are allowed"
-              />
-              <Button
-                colorScheme="teal"
-                size="md"
-                w="full"
-                type="submit"
-                isDisabled={!isValidEmail()}
-              >
-                Send Code
-              </Button>
-            </>
-          ) : (
-            <>
-              <Text fontSize="sm" color="gray.400" textAlign="center">
-                Enter the code sent to {email}
-              </Text>
-              <Input
-                placeholder="Verification code"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                size="md"
-                focusBorderColor="teal.400"
-                autoComplete="off"
-              />
+    <Box
+      as="form"
+      w="full"
+      bg="gray.800"
+      borderRadius="lg"
+      p={6}
+      onSubmit={(e) => {
+        e.preventDefault();
+        step === 'email' ? handleEmailSubmit() : handleCodeSubmit();
+      }}
+    >
+      <VStack spacing={6}>
+        <Heading size="lg" textAlign="center" color="gray.50">
+          Sign In
+        </Heading>
+        {step === 'email' ? (
+          <>
+            <Input
+              placeholder="Email address"
+              value={email}
+              onChange={handleEmailChange}
+              size="md"
+              focusBorderColor="teal.400"
+              bg="gray.700"
+              color="white"
+              _placeholder={{ color: 'gray.400' }}
+              autoComplete="email"
+              pattern="[a-zA-Z0-9@.\-_+]+"
+              title="Only letters, numbers, @, ., -, _, and + are allowed"
+            />
+            <Button
+              colorScheme="teal"
+              size="md"
+              w="full"
+              type="submit"
+              isDisabled={!isValidEmail()}
+            >
+              Send Code
+            </Button>
+          </>
+        ) : (
+          <>
+            <Text fontSize="sm" color="gray.400" textAlign="center">
+              Enter the code sent to {email}
+            </Text>
+            <Input
+              placeholder="Verification code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              size="md"
+              focusBorderColor="teal.400"
+              bg="gray.700"
+              color="white"
+              _placeholder={{ color: 'gray.400' }}
+              autoComplete="off"
+            />
+            <HStack w="full" justify="space-between">
               <Button
                 colorScheme="teal"
                 size="md"
@@ -133,10 +153,20 @@ export default function LoginForm({ onLogin }) {
               >
                 Verify
               </Button>
-            </>
-          )}
-        </VStack>
-      </Box>
-    </Center>
+              <Button
+                variant="outline"
+                size="md"
+                colorScheme="teal"
+                onClick={() => handleEmailSubmit(true)} // Resend flag
+                isDisabled={resendCooldown > 0}
+                w="full"
+              >
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Code'}
+              </Button>
+            </HStack>
+          </>
+        )}
+      </VStack>
+    </Box>
   );
 }
