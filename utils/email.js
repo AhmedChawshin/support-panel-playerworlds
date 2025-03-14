@@ -59,7 +59,7 @@ export const sendCodeEmail = async (email, code) => {
 `;
 
   resend.emails.send({
-    from: 'GraalOnline Support <support@graalonline.com>',
+    from: 'GraalOnline Support <graaltestmail@resend.dev>',
     to: email,
     subject: 'Your Authentication Code',
     html: authEmailContent
@@ -106,7 +106,7 @@ export const sendTicketUpdateEmail = async (email, ticketId) => {
   </html>
 `;
   resend.emails.send({
-    from: 'GraalOnline Support <support@graalonline.com>',
+    from: 'GraalOnline Support <graaltestmail@resend.dev>',
     to: email,
     subject: `New response for ticket #${ticketId} `,
     html: ticketUpdateEmailContent
