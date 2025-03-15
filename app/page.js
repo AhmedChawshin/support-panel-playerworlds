@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Spinner, VStack, Text, Heading } from '@chakra-ui/react';
+import { Box, Spinner, VStack, Text } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -103,13 +103,6 @@ export default function Home() {
 
         {/* Heading and Text */}
         <VStack spacing={3} textAlign="center" maxW="md">
-          <Heading
-            fontSize={{ base: '2xl', md: '3xl' }}
-            fontWeight="bold"
-            animation={`${fadeIn} 0.8s ease-out`}
-          >
-            GraalOnline Support
-          </Heading>
           <Text
             fontSize={{ base: 'sm', md: 'md' }}
             color="gray.300"
