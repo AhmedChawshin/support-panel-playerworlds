@@ -1,14 +1,12 @@
-import { connectToDatabase } from '../../../../utils/db'; // Adjust path as needed
-import { authMiddleware } from '../../../../utils/middleware'; // Adjust path as needed
+import { connectToDatabase } from '../../../../utils/db';
+import { authMiddleware } from '../../../../utils/middleware';
 
 async function handler(req) {
   const db = await connectToDatabase();
 
-  // Define time range
   const now = new Date();
   const past24h = new Date(now - 24 * 60 * 60 * 1000);
 
-  // Access collections
   const ticketsCollection = db.collection('tickets');
   const usersCollection = db.collection('users');
 
@@ -22,13 +20,13 @@ async function handler(req) {
     const tickets24h = await ticketsCollection
       .find({
         createdAt: { $gte: past24h },
-        'replies.0': { $exists: true }, // Has at least one reply
+        'replies.0': { $exists: true },
       })
       .toArray();
     const avgResponseTime24h = tickets24h.length
       ? tickets24h.reduce((sum, ticket) => {
           const firstReplyTime = new Date(ticket.replies[0].date) - new Date(ticket.createdAt);
-          return sum + firstReplyTime / 1000; // Convert to seconds
+          return sum + firstReplyTime / 1000;
         }, 0) / tickets24h.length
       : 0;
 
@@ -38,23 +36,46 @@ async function handler(req) {
     // Total Users
     const totalUsers = await usersCollection.countDocuments();
 
-    // Agent Performance (Past 24h)
+    // Agent Performance (Past 24h) - Using assignedAdmin and closed status
     const agentPerformance = await ticketsCollection
       .aggregate([
-        { $match: { createdAt: { $gte: past24h }, 'replies.0': { $exists: true } } },
-        { $unwind: '$replies' },
+        { 
+          $match: { 
+            createdAt: { $gte: past24h },
+            status: 'closed',
+            assignedAdmin: { $ne: null } // Ensure there's an assigned admin
+          } 
+        },
+        {
+          $lookup: {
+            from: 'users',
+            let: { assignedAdminEmail: '$assignedAdmin' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ['$email', '$$assignedAdminEmail'] },
+                  role: { $in: ['admin', 'superadmin'] }
+                }
+              }
+            ],
+            as: 'userInfo'
+          }
+        },
+        // Only keep documents where we found a matching admin/superadmin
+        { $match: { 'userInfo.0': { $exists: true } } },
         {
           $group: {
-            _id: '$replies.by',
+            _id: '$assignedAdmin',
             ticketsHandled: { $addToSet: '$_id' },
-            responseTimes: { $push: { $subtract: ['$replies.date', '$createdAt'] } },
+            // Calculate time from creation to closing instead of first reply
+            resolutionTimes: { $push: { $subtract: ['$updatedAt', '$createdAt'] } },
           },
         },
         {
           $project: {
             email: '$_id',
             ticketsHandled: { $size: '$ticketsHandled' },
-            avgResponseTime: { $avg: '$responseTimes' }, // In milliseconds
+            avgResolutionTime: { $avg: '$resolutionTimes' }, // Renamed from avgResponseTime
           },
         },
       ])
@@ -68,7 +89,7 @@ async function handler(req) {
       agentPerformance: agentPerformance.map((agent) => ({
         email: agent.email,
         ticketsHandled: agent.ticketsHandled,
-        avgResponseTime: agent.avgResponseTime / 1000, // Convert to seconds
+        avgResponseTime: agent.avgResolutionTime / 1000, // Convert to seconds
       })),
     };
 
@@ -79,7 +100,6 @@ async function handler(req) {
   }
 }
 
-// Custom middleware for superadmin role
 const superadminMiddleware = (handler) =>
   authMiddleware((req) => {
     if (req.user.role !== 'superadmin') {
