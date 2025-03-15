@@ -1,125 +1,137 @@
 'use client';
 
-import { Box, Spinner, VStack, Heading, Text, Image } from '@chakra-ui/react';
+import { Box, Spinner, VStack, Text, Heading } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import LoginForm from '../components/LoginForm';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import LoginForm from '../components/LoginForm';
 
-// Enhanced fade-in animation with slight scale
+// Fade-in animation
 const fadeIn = keyframes`
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 `;
+
+const LoadingSpinner = () => (
+  <Box
+    bg="gray.900"
+    h="100vh"
+    display="flex"
+    alignItems="center"
+    justifyContent="center"
+  >
+    <Spinner size="xl" color="teal.400" thickness="4px" speed="0.65s" />
+  </Box>
+);
 
 export default function Home() {
   const router = useRouter();
-  const [token, setToken] = useState(null); // Initialize as null
+  const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Access localStorage after the component has mounted on the client
     if (typeof window !== 'undefined') {
       const storedToken = localStorage.getItem('token');
       setToken(storedToken);
+      setIsLoading(false);
     }
-    setIsLoading(false); // Stop loading after the check
   }, []);
 
   useEffect(() => {
     if (token) {
-      // Redirect to dashboard if token exists
-      setTimeout(() => router.push('/dashboard'), 200); // Slightly longer delay for smoothness
+      setTimeout(() => router.push('/dashboard'), 200);
     }
   }, [token, router]);
 
   const handleLogin = (newToken) => {
     setToken(newToken);
-    setIsLoading(true); // Show the spinner after login
+    setIsLoading(true);
   };
 
-  if (isLoading) {
-    return (
-      <Box bg="gray.900" minH="100vh" display="flex" alignItems="center" justifyContent="center">
-        <Spinner size="xl" color="teal.400" thickness="4px" speed="0.65s" />
-      </Box>
-    );
-  }
+  if (isLoading) return <LoadingSpinner />;
 
   return (
-    <Box
-      minH="100vh"
-      bgImage="url('/images/background_graalwebsite.jpg')"
-      bgSize="cover"
-      bgPosition="center"
-      bgRepeat="no-repeat"
-      position="relative"
-      overflow="hidden"
-    >
-      {/* Gradient Overlay for smoother transition */}
+    <Box position="relative" h="100vh" overflow="hidden" bg="gray.900">
+      {/* Background Image */}
+      <Image
+        src="/images/background_graalwebsite.jpg"
+        alt="Support Background"
+        fill
+        style={{ objectFit: 'cover', zIndex: 0 }}
+        quality={85}
+        priority
+      />
+
+      {/* Overlay */}
       <Box
         position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        bg="linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5))"
+        inset={0}
+        bg="rgba(0, 0, 0, 0.75)" // Darker overlay for better contrast
         zIndex={1}
       />
+
       {/* Content */}
       <VStack
-        spacing={{ base: 8, md: 12 }}
-        align="center"
-        justify="center"
-        minH="100vh"
-        px={{ base: 4, md: 8 }}
-        py={{ base: 10, md: 16 }}
         position="relative"
         zIndex={2}
+        h="100vh"
+        spacing={6}
+        align="center"
+        justify="center"
+        px={{ base: 4, md: 6 }}
         color="white"
       >
         {/* Logo */}
         <Box
-          animation={`${fadeIn} 0.8s ease-out`}
+          animation={`${fadeIn} 0.6s ease-out`}
           transition="transform 0.2s ease"
-          _hover={{ transform: 'scale(1.02)' }}
+          _hover={{ transform: 'scale(1.03)' }}
         >
           <Image
             src="/images/logograalonline.png"
-            alt="Graal Online Logo"
-            maxW={{ base: '220px', md: '320px' }}
-            filter="drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3))"
+            draggable="false"
+            alt="Graal Online Support"
+            width={200}
+            height={120}
+            style={{ maxWidth: '100%', height: 'auto' }}
+            quality={90}
+            priority
+            sizes="(max-width: 768px) 200px, 300px"
           />
         </Box>
 
-        {/* Welcome Text */}
-        <VStack
-          spacing={4}
-          textAlign="center"
-          maxW="lg"
-          animation={`${fadeIn} 1s ease-out`}
-        >
-          <Text
-            fontSize={{ base: 'md', md: 'lg' }}
-            color="gray.200"
-            fontWeight="medium"
+        {/* Heading and Text */}
+        <VStack spacing={3} textAlign="center" maxW="md">
+          <Heading
+            fontSize={{ base: '2xl', md: '3xl' }}
+            fontWeight="bold"
+            animation={`${fadeIn} 0.8s ease-out`}
           >
-            Sign in with your GraalOnline e-mail address to open a support ticket
+            GraalOnline Support
+          </Heading>
+          <Text
+            fontSize={{ base: 'sm', md: 'md' }}
+            color="gray.300"
+            animation={`${fadeIn} 1s ease-out`}
+          >
+            Sign in with your GraalOnline email to access support or submit a ticket.
           </Text>
         </VStack>
 
-        {/* Login Form */}
+        {/* Login Form Container */}
         <Box
-          w={{ base: 'full', md: 'md' }}
-          maxW="sm"
-          p={6}
+          w={{ base: 'full', sm: 'sm', md: 'md' }}
+          maxW="400px"
+          p={{ base: 5, md: 6 }}
           bg="gray.800"
-          borderRadius="xl"
-          boxShadow="2xl"
+          borderRadius="lg"
+          boxShadow="lg"
           border="1px solid"
           borderColor="gray.700"
           animation={`${fadeIn} 1.2s ease-out`}
-          transition="all 0.3s ease"
+          transition="all 0.2s ease"
+          _hover={{ boxShadow: 'xl', borderColor: 'gray.600' }}
         >
           <LoginForm onLogin={handleLogin} />
         </Box>

@@ -19,12 +19,21 @@ export default function AdminTicketList({ tickets }) {
   const router = useRouter();
 
   const getAssignedAdmin = (ticket) => {
-    return ticket.assignedAdmin || 'Unassigned'; // Use assignedAdmin directly
+    return ticket.assignedAdmin || 'Unassigned';
   };
 
   const truncateText = (text, maxLength) => {
-    if (text.length <= maxLength) return text;
+    if (!text || text.length <= maxLength) return text || '';
     return text.substring(0, maxLength) + '...';
+  };
+
+  const getGameDisplay = (game) => {
+    return game
+      ?.replace('_', ' ')
+      .replace('classic', 'GraalOnline Classic')
+      .replace('era', 'GraalOnline Era')
+      .replace('zone', 'GraalOnline Zone')
+      .replace('olwest', 'GraalOnline Olwest') || 'Unknown Game';
   };
 
   return (
@@ -39,8 +48,8 @@ export default function AdminTicketList({ tickets }) {
       <Table variant="simple" size="sm">
         <Thead bg="gray.700">
           <Tr>
-            <Th color="gray.50" py={2} px={3}>Type</Th>
-            <Th color="gray.50" py={2} px={3}>Title</Th>
+            <Th color="gray.50" py={2} px={3}>Problem Type</Th>
+            <Th color="gray.50" py={2} px={3}>Game</Th>
             <Th color="gray.50" py={2} px={3}>Status</Th>
             <Th color="gray.50" py={2} px={3}>User</Th>
             <Th color="gray.50" py={2} px={3}>Assigned</Th>
@@ -63,13 +72,15 @@ export default function AdminTicketList({ tickets }) {
               >
                 <Td py={2} px={3}>
                   <Text color="gray.50" fontSize="xs">
-                    {ticket.type}
+                    {ticket.problemType ? ticket.problemType.charAt(0).toUpperCase() + ticket.problemType.slice(1) : 'N/A'}
                   </Text>
                 </Td>
                 <Td py={2} px={3}>
-                  <Text color="gray.50" fontSize="xs" fontWeight="medium">
-                    {truncateText(ticket.title, 15)}
-                  </Text>
+                  <Tooltip label={getGameDisplay(ticket.game)} bg="gray.700" color="white" placement="top">
+                    <Text color="gray.50" fontSize="xs">
+                      {truncateText(getGameDisplay(ticket.game), 15)}
+                    </Text>
+                  </Tooltip>
                 </Td>
                 <Td py={2} px={3}>
                   <Badge
@@ -90,17 +101,16 @@ export default function AdminTicketList({ tickets }) {
                 </Td>
                 <Td py={2} px={3}>
                   <Text color="gray.50" fontSize="xs">
-                    {truncateText(ticket.email, 12)}
+                    {ticket.email}
                   </Text>
                 </Td>
                 <Td py={2} px={3}>
                   <Tooltip label={getAssignedAdmin(ticket)} bg="gray.700" color="white" placement="top">
                     <Text color="gray.50" fontSize="xs">
-                      {truncateText(getAssignedAdmin(ticket), 12)}
+                      {getAssignedAdmin(ticket)}
                     </Text>
                   </Tooltip>
                 </Td>
-
                 <Td py={2} px={3}>
                   <Button
                     size="xs"

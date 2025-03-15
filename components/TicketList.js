@@ -65,6 +65,20 @@ const TicketItem = memo(({ ticket, userEmail, onReply }) => {
     }
   };
 
+  const getGameDisplay = (game) => {
+    return game
+      ?.replace('_', ' ')
+      .replace('classic', 'GraalOnline Classic')
+      .replace('era', 'GraalOnline Era')
+      .replace('zone', 'GraalOnline Zone')
+      .replace('olwest', 'GraalOnline Olwest') || 'Unknown Game';
+  };
+
+  const getProblemTitle = () => {
+    const base = ticket.problemType ? ticket.problemType.charAt(0).toUpperCase() + ticket.problemType.slice(1) : 'Issue';
+    return ticket.subProblem ? `${base} - ${ticket.subProblem.charAt(0).toUpperCase() + ticket.subProblem.slice(1).replace(/([A-Z])/g, ' $1')}` : base;
+  };
+
   return (
     <AccordionItem
       border="none"
@@ -76,10 +90,10 @@ const TicketItem = memo(({ ticket, userEmail, onReply }) => {
       <AccordionButton p={4} _hover={{ bg: 'gray.700' }}>
         <Box flex="1" textAlign="left">
           <Text fontWeight="medium" fontSize="md" color="gray.50">
-            {ticket.title}
+            {getProblemTitle()}
           </Text>
           <Text fontSize="xs" color="gray.400">
-            Type: {ticket.type} | GraalID: {ticket.graalid}
+            Game: {getGameDisplay(ticket.game)} | GraalID: {ticket.graalid}
           </Text>
         </Box>
         <Badge
@@ -102,9 +116,13 @@ const TicketItem = memo(({ ticket, userEmail, onReply }) => {
       </AccordionButton>
       <AccordionPanel pb={4} pt={2} bg="gray.800" borderRadius="lg">
         <VStack align="start" spacing={3} divider={<StackDivider borderColor="gray.700" />}>
-          <Text color="gray.50" fontSize="sm" whiteSpace="pre-wrap">{ticket.description}</Text>
+          <VStack align="start" spacing={1}>
+            <Text fontSize="sm" color="gray.300" fontWeight="medium">Details:</Text>
+            <Text color="gray.50" fontSize="sm" whiteSpace="pre-wrap">{ticket.description}</Text>
+          </VStack>
           {ticket.replies?.length > 0 && (
             <VStack w="full" spacing={2}>
+              <Text fontSize="sm" color="gray.300" fontWeight="medium">Replies:</Text>
               {ticket.replies.map((reply, index) => (
                 <Box
                   key={index}
@@ -170,9 +188,15 @@ const TicketItem = memo(({ ticket, userEmail, onReply }) => {
 export default function TicketList({ tickets, userEmail, onReply }) {
   return (
     <Accordion allowMultiple w="full" maxW="800px" mx="auto">
-      {tickets.map((ticket) => (
-        <TicketItem key={ticket._id} ticket={ticket} userEmail={userEmail} onReply={onReply} />
-      ))}
+      {tickets.length === 0 ? (
+        <Box p={4} textAlign="center">
+          <Text color="gray.400">No tickets found</Text>
+        </Box>
+      ) : (
+        tickets.map((ticket) => (
+          <TicketItem key={ticket._id} ticket={ticket} userEmail={userEmail} onReply={onReply} />
+        ))
+      )}
     </Accordion>
   );
 }

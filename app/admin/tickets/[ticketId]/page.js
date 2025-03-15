@@ -77,16 +77,20 @@ export default function TicketPage() {
       return;
     }
     try {
-      await axios.put('/api/tickets', {
-        ticketId,
-        response: reply,
-        status: 'Waiting for user response',
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
+      await axios.put(
+        '/api/tickets',
+        {
+          ticketId,
+          response: reply,
+          status: 'Waiting for user response',
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
+      );
       toast({ title: 'Reply sent', status: 'success', position: 'top' });
       setReply('');
-      router.push('/admin');
+      fetchTicket(); // Refresh ticket data instead of redirecting
     } catch (error) {
       toast({
         title: 'Error',
@@ -99,14 +103,18 @@ export default function TicketPage() {
 
   const handleClose = async () => {
     try {
-      await axios.put('/api/tickets', {
-        ticketId,
-        status: 'closed',
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
+      await axios.put(
+        '/api/tickets',
+        {
+          ticketId,
+          status: 'closed',
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
+      );
       toast({ title: 'Ticket closed', status: 'success', position: 'top' });
-      router.push('/admin');
+      fetchTicket(); // Refresh ticket data instead of redirecting
     } catch (error) {
       toast({
         title: 'Error',
@@ -115,6 +123,15 @@ export default function TicketPage() {
         position: 'top',
       });
     }
+  };
+
+  const getGameDisplay = (game) => {
+    return game
+      ?.replace('_', ' ')
+      .replace('classic', 'GraalOnline Classic')
+      .replace('era', 'GraalOnline Era')
+      .replace('zone', 'GraalOnline Zone')
+      .replace('olwest', 'GraalOnline Olwest') || 'Unknown Game';
   };
 
   if (loading) {
@@ -156,41 +173,46 @@ export default function TicketPage() {
               _hover={{ bg: 'teal.900', transform: 'scale(1.1)' }}
               transition="all 0.2s"
             />
-
+            <HStack spacing={3}>
+              <Badge
+                colorScheme={
+                  ticket.status === 'closed'
+                    ? 'red'
+                    : ticket.status === 'Waiting for user response'
+                    ? 'teal'
+                    : 'gray'
+                }
+                fontSize="sm"
+                px={3}
+                py={1}
+                borderRadius="full"
+                boxShadow="sm"
+                textTransform="capitalize"
+              >
+                {ticket.status}
+              </Badge>
+              <Text fontSize="xs" color="gray.400">
+                Created: {new Date(ticket.createdAt).toLocaleString()}
+              </Text>
+            </HStack>
           </Flex>
 
           {/* Ticket Details */}
           <VStack align="start" spacing={4} w="full">
-            <Flex w="full" justify="space-between" align="center">
-              <Text fontSize="lg" color="white" fontWeight="bold">
-              {ticket.title}
-              </Text>
-              <Text fontSize="xs" color="gray.400">
-                {new Date(ticket.createdAt).toLocaleString()}
-              </Text>
-              <Badge
-              colorScheme={
-                ticket.status === 'closed'
-                  ? 'red'
-                  : ticket.status === 'Waiting for user response'
-                  ? 'teal'
-                  : 'gray'
-              }
-              fontSize="sm"
-              px={3}
-              py={1}
-              borderRadius="full"
-              boxShadow="sm"
-              textTransform="capitalize"
-            >
-              {ticket.status}
-            </Badge>
-            </Flex>
+            <Text fontSize="lg" color="white" fontWeight="bold">
+              {ticket.problemType
+                ? `${ticket.problemType.charAt(0).toUpperCase() + ticket.problemType.slice(1)}${
+                    ticket.subProblem
+                      ? ` - ${ticket.subProblem.charAt(0).toUpperCase() + ticket.subProblem.slice(1).replace(/([A-Z])/g, ' $1')}`
+                      : ''
+                  }`
+                : 'Untitled Issue'}
+            </Text>
             <Divider borderColor="gray.600" />
-            <HStack spacing={6} wrap="wrap">
+            <HStack spacing={6} wrap="wrap" justify="space-between">
               <Box>
-                <Text fontSize="xs" color="gray.400" fontWeight="medium">Type</Text>
-                <Text fontSize="sm" color="white">{ticket.type}</Text>
+                <Text fontSize="xs" color="gray.400" fontWeight="medium">Game</Text>
+                <Text fontSize="sm" color="white">{getGameDisplay(ticket.game)}</Text>
               </Box>
               <Box>
                 <Text fontSize="xs" color="gray.400" fontWeight="medium">GraalID</Text>
@@ -226,6 +248,22 @@ export default function TicketPage() {
                 {ticket.description}
               </Box>
             </Box>
+            <HStack spacing={4} wrap="wrap">
+              <Box>
+                <Text fontSize="xs" color="gray.400" fontWeight="medium">Installed</Text>
+                <Text fontSize="sm" color={ticket.installed === '1' ? 'green.300' : 'red.300'}>
+                  {ticket.installed === '1' ? 'Yes' : ticket.installed === '0' ? 'No' : 'N/A'}
+                </Text>
+              </Box>
+              {ticket.installed === '1' && (
+                <Box>
+                  <Text fontSize="xs" color="gray.400" fontWeight="medium">Started</Text>
+                  <Text fontSize="sm" color={ticket.started === '1' ? 'green.300' : 'red.300'}>
+                    {ticket.started === '1' ? 'Yes' : ticket.started === '0' ? 'No' : 'N/A'}
+                  </Text>
+                </Box>
+              )}
+            </HStack>
           </VStack>
 
           {/* Replies Section */}
@@ -300,6 +338,7 @@ export default function TicketPage() {
                   borderRadius="md"
                   boxShadow="md"
                   transition="all 0.2s"
+                  _hover={{ bg: 'teal.700', transform: 'translateY(-2px)' }}
                 >
                   Send Reply
                 </Button>
@@ -314,6 +353,7 @@ export default function TicketPage() {
                   borderRadius="md"
                   boxShadow="md"
                   transition="all 0.2s"
+                  _hover={{ bg: 'red.600', color: 'white', transform: 'translateY(-2px)' }}
                 >
                   Close Ticket
                 </Button>
