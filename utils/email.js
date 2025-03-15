@@ -24,7 +24,6 @@ const emailStyles = `
 export const sendCodeEmail = async (email, code) => {
 
   const baseUrl = `${process.env.WEBPAGE_URL || 'http://localhost:3000'}`; // Adjust base URL as needed
-
   
   const authEmailContent = `
   <!DOCTYPE html>
@@ -59,7 +58,7 @@ export const sendCodeEmail = async (email, code) => {
 `;
 
   resend.emails.send({
-    from: 'GraalOnline Support <graalsupport@resend.dev>',
+    from: 'GraalOnline Support <onboarding@resend.dev>',
     to: email,
     subject: 'Your Authentication Code',
     html: authEmailContent
@@ -105,8 +104,9 @@ export const sendTicketUpdateEmail = async (email, ticketId) => {
   </body>
   </html>
 `;
+  
   resend.emails.send({
-    from: 'GraalOnline Support <graalsupport@resend.dev>',
+    from: 'GraalOnline Support <onboarding@resend.dev>',
     to: email,
     subject: `New response for ticket #${ticketId} `,
     html: ticketUpdateEmailContent
