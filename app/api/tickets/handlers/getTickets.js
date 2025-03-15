@@ -31,7 +31,6 @@ export async function getTickets(req) {
     }
     const ticket = await db.collection('tickets').findOne(
       { _id: new ObjectId(ticketId) },
-      { projection: { assignedAdmin: 1 } } // Always include for admins
     );
     if (!ticket) {
       return newResponse({ message: 'Ticket not found' }, 404);
