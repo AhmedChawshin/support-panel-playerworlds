@@ -22,11 +22,17 @@ export async function getTickets(req) {
     return newResponse({ message: 'User not found in database' }, 403);
   }
 
+  // Determine if the user is an admin or superadmin
+  const isAdminOrSuperadmin = req.user.role === 'admin' || req.user.role === 'superadmin';
+
   if (ticketId) {
-    if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+    if (!isAdminOrSuperadmin) {
       return newResponse({ message: 'Forbidden' }, 403);
     }
-    const ticket = await db.collection('tickets').findOne({ _id: new ObjectId(ticketId) });
+    const ticket = await db.collection('tickets').findOne(
+      { _id: new ObjectId(ticketId) },
+      { projection: { assignedAdmin: 1 } } // Always include for admins
+    );
     if (!ticket) {
       return newResponse({ message: 'Ticket not found' }, 404);
     }
@@ -47,9 +53,11 @@ export async function getTickets(req) {
     }
   }
 
+  const projection = isAdminOrSuperadmin ? {} : { assignedAdmin: 0 }; // Exclude assignedAdmin if not admin/superadmin
+
   const total = await db.collection('tickets').countDocuments(query);
   const tickets = await db.collection('tickets')
-    .find(query)
+    .find(query, { projection }) // Apply projection here
     .sort({ createdAt: sortOrder })
     .skip(skip)
     .limit(limit)
