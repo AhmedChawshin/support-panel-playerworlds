@@ -42,7 +42,7 @@ export default function NavBar() {
   };
 
   return (
-    <Box bg="gray.800" px={6} py={4} borderBottom="1px" borderColor="gray.700" position="sticky" top={0} zIndex={10}>
+    <Box bg="gray.800" px={6} py={4} borderBottom="1px" borderColor="gray.700" zIndex={10}>
       <Flex align="center" justify="space-between" maxW="1200px" mx="auto">
         <HStack spacing={3}>
           <Heading
@@ -68,15 +68,15 @@ export default function NavBar() {
         </HStack>
         {token ? (
           <HStack spacing={4} display={{ base: 'none', md: 'flex' }}>
-            {(userRole === 'user') && (
+            {userRole === 'user' && (
               <>
-            <Button variant="ghost" onClick={() => router.push('/dashboard/tickets')}>
-            Tickets
-          </Button>
-          <Button variant="ghost" onClick={() => router.push('/dashboard/new')}>
-            New Ticket
-          </Button>
-          </>
+                <Button variant="ghost" onClick={() => router.push('/dashboard/tickets')}>
+                  Tickets
+                </Button>
+                <Button variant="ghost" onClick={() => router.push('/dashboard/new')}>
+                  New Ticket
+                </Button>
+              </>
             )}
             {(userRole === 'admin' || userRole === 'superadmin') && (
               <Button variant="ghost" onClick={() => router.push('/admin')}>
@@ -99,19 +99,19 @@ export default function NavBar() {
               aria-label="Menu"
             />
             <MenuList bg="gray.800" borderColor="gray.700">
-            {(userRole === 'user') && (
-              <>
-               <MenuItem onClick={() => router.push('/dashboard/tickets')} color="gray.50">
-                Tickets
-              </MenuItem>
-              <MenuItem onClick={() => router.push('/dashboard/new')} color="gray.50">
-                New Ticket
-              </MenuItem>
-              </>
+              {userRole === 'user' && (
+                <>
+                  <MenuItem onClick={() => router.push('/dashboard/tickets')} color="gray.50">
+                    Tickets
+                  </MenuItem>
+                  <MenuItem onClick={() => router.push('/dashboard/new')} color="gray.50">
+                    New Ticket
+                  </MenuItem>
+                </>
               )}
               {(userRole === 'admin' || userRole === 'superadmin') && (
                 <MenuItem onClick={() => router.push('/admin')} color="gray.50">
-                Manage Tickets
+                  Manage Tickets
                 </MenuItem>
               )}
               <MenuItem onClick={handleLogout} color="gray.50">

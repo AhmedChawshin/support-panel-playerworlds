@@ -2,7 +2,7 @@
 import { ChakraProvider } from '@chakra-ui/react';
 import theme from '../styles/theme';
 import NavBar from '../components/NavBar';
-
+import Footer from '../components/Footer';
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -23,6 +23,7 @@ export default function RootLayout({ children }) {
         <ChakraProvider theme={theme}>
           <NavBar />
           <main style={{ minHeight: 'calc(100vh - 72px)', bg: 'gray.900' }}>{children}</main>
+          <Footer />
         </ChakraProvider>
       </body>
     </html>
