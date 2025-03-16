@@ -76,7 +76,6 @@ export const sendCodeEmail = async (email, code) => {
 export const sendTicketUpdateEmail = async (email, ticketId) => {
 
   try {
-    
   const dashboardUrl = `${process.env.WEBPAGE_URL || 'http://localhost:3000'}/dashboard/tickets`; // Adjust base URL as needed
   const baseUrl = `${process.env.WEBPAGE_URL || 'http://localhost:3000'}`; // Adjust base URL as needed
 
@@ -120,11 +119,7 @@ export const sendTicketUpdateEmail = async (email, ticketId) => {
       html: ticketUpdateEmailContent
     });
 
-    if (!response?.id) {
-      throw new Error('Email sending failed: No response ID received');
-    }
-
-    console.log(`Ticket update email sent successfully to ${email} with ID: ${response.id}`);
+    console.log(response);
     return null;
   } catch (error) {
     console.error('Failed to send ticket update email:', error.message);
