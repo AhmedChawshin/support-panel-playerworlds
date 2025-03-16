@@ -67,12 +67,8 @@ export const sendCodeEmail = async (email, code) => {
       subject: 'Your Authentication Code',
       html: authEmailContent
   });
+  console.log(response)
 
-    if (!response?.id) {
-      throw new Error('Email sending failed: No response ID received');
-    }
-
-    console.log(`Email sent successfully to ${email} with ID: ${response.id}`);
     return null;
 };
 
