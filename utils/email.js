@@ -1,6 +1,10 @@
 import { Resend } from 'resend';
 
+// Initialize Resend client with error checking
 const resend = new Resend(process.env.RESEND_API);
+if (!process.env.RESEND_API) {
+  console.error('RESEND_API environment variable is not set');
+}
 
 
 const emailStyles = `
@@ -22,7 +26,7 @@ const emailStyles = `
 
 // Send authentication code email
 export const sendCodeEmail = async (email, code) => {
-
+  
   const baseUrl = `${process.env.WEBPAGE_URL || 'http://localhost:3000'}`; // Adjust base URL as needed
   
   const authEmailContent = `
@@ -57,18 +61,26 @@ export const sendCodeEmail = async (email, code) => {
   </html>
 `;
 
-  resend.emails.send({
-    from: 'GraalOnline Support <onboarding@resend.dev>',
-    to: email,
-    subject: 'Your Authentication Code',
-    html: authEmailContent
+ const response = await resend.emails.send({
+      from: 'GraalOnline Support <onboarding@resend.dev>',
+      to: email,
+      subject: 'Your Authentication Code',
+      html: authEmailContent
   });
 
-  return;
+    if (!response?.id) {
+      throw new Error('Email sending failed: No response ID received');
+    }
+
+    console.log(`Email sent successfully to ${email} with ID: ${response.id}`);
+    return null;
 };
 
 // Send ticket update email
 export const sendTicketUpdateEmail = async (email, ticketId) => {
+
+  try {
+    
   const dashboardUrl = `${process.env.WEBPAGE_URL || 'http://localhost:3000'}/dashboard/tickets`; // Adjust base URL as needed
   const baseUrl = `${process.env.WEBPAGE_URL || 'http://localhost:3000'}`; // Adjust base URL as needed
 
@@ -105,12 +117,22 @@ export const sendTicketUpdateEmail = async (email, ticketId) => {
   </html>
 `;
   
-  resend.emails.send({
-    from: 'GraalOnline Support <onboarding@resend.dev>',
-    to: email,
-    subject: `New response for ticket #${ticketId} `,
-    html: ticketUpdateEmailContent
-  });
+    const response = await resend.emails.send({
+      from: 'GraalOnline Support <onboarding@resend.dev>',
+      to: email,
+      subject: `New response for ticket #${ticketId}`,
+      html: ticketUpdateEmailContent
+    });
 
-  return;
+    if (!response?.id) {
+      throw new Error('Email sending failed: No response ID received');
+    }
+
+    console.log(`Ticket update email sent successfully to ${email} with ID: ${response.id}`);
+    return null;
+  } catch (error) {
+    console.error('Failed to send ticket update email:', error.message);
+    return null;
+  }
+
 };
