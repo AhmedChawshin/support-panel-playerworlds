@@ -1,77 +1,82 @@
 # GraalOnline Playerworlds - Support Ticket System (Prototype)
 
-This is a prototype for handling support tickets in **GraalOnline Playerworlds**. It is not a finished product but serves as a foundation for future development.
+A prototype support ticket system for **GraalOnline Playerworlds**, designed to streamline issue reporting and resolution. This project is a work-in-progress and serves as a foundation for future development.
 
 ---
 
 ## 🚀 Getting Started
 
-To begin development, install dependencies and start the server:
+To set up the project locally:
 
 ```bash
-npm install    # Install dependencies
-npm run dev    # Start development server
-npm run build  # Build for production
+npm install         # Install project dependencies
+npm run dev         # Launch the development server
+npm run build       # Build the app for production
 ```
 
 ---
 
-## 🔧 Environment Configuration
+## 🔧 Environment Setup
 
-Create an environment file `.env.local` in the root directory and populate it with the following variables:
+Create a `.env.local` file in the root directory with the following variables:
 
 ```ini
 MONGODB_URI=your_mongodb_connection_string
-EMAIL_USER=uhutr3rieypitebg@ethereal.email  # Example from ethereal.email
-EMAIL_PASS=K2gT1q5K3T8TGcfbsX
-DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url #webhook for new tickets and replys from users
-JWT_SECRET=YOUR_SECRET_KEY #secret for authentication 
+RESEND_API=your_resend_api_key              # For email notifications
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url  # Webhook for ticket updates
+WEBPAGE_URL=https://localhost:3000          # Base URL (update for production)
+JWT_SECRET=your-secure-secret               # Secret key for JWT authentication
 ```
 
-Ensure all credentials are secure and never share them publicly.
+**Note**: Keep these values secure and avoid committing them to version control.
 
 ---
 
 ## 📸 Screenshots
 
-### 🔑 Login Page  
-![Login Page](https://i.imgur.com/QEqCHoB.png)
-
-### 🔐 2FA Authentication  
-![2FA Page](https://i.imgur.com/03nEpvj.png)
-
-### 📊 User Dashboard  
-![Dashboard Page](https://i.imgur.com/gfelMfw.png)
-
-### 🎫 All Tickets View  
-![All tickets](https://i.imgur.com/Q2PkJZ1.png)
-
-### ✉️ Replying to Tickets  
-![Reply to tickets](https://i.imgur.com/YkEcwzn.png)
-
-### 📝 Creating a Ticket  
-![Create a ticket](https://i.imgur.com/2cq9wOO.png)
-
-### 🛠 Admin Dashboard  
-![Admin dashboard](https://i.imgur.com/AGbMOwM.png)
+| Feature             | Screenshot                                                                |
+|---------------------|---------------------------------------------------------------------------|
+| **Login Page**      | ![Login Page](https://i.imgur.com/rVRCe5y.png)                           |
+| **2FA Authentication** | ![2FA Page](https://i.imgur.com/oo6lsKl.png)                          |
+| **User Dashboard**  | ![Dashboard Page](https://i.imgur.com/gZX0KAb.png)                       |
+| **All Tickets View**| ![All Tickets](https://i.imgur.com/qmaNiqW.png)                          |
+| **Replying to Tickets** | ![Reply to Tickets as admin](https://i.imgur.com/5d6zu3C.png)        |
+| **Creating a Ticket**| ![Create a Ticket](https://i.imgur.com/FDI6pRv.png)                     |
+| **Admin Dashboard** | ![Admin Dashboard](https://i.imgur.com/T9qOYGc.png)                      |
+| **Ticket reply from Admin** | ![E-mail for ticket replys](https://i.imgur.com/DCEtBdA.png)      |
+| **2FA e-mail** | ![Login e-mail](https://i.imgur.com/58zoQS2.png)    |
 
 ---
 
-## 🛠 Features 
+## ✨ Features
 
-- **User Authentication** (Login, 2FA support)
-- **Create, View & Manage Tickets**
-- **Admin Dashboard for ticket handling**
-- **Email & Discord Webhook Integration**
-- **MongoDB for Data storage**
+### User Features
+- **Authentication**: Secure login with JWT and two-factor authentication (2FA).
+- **Ticket Creation**: Submit tickets with problem types (e.g., "Rude Player") and sub-problems (e.g., "Bad Nick").
+- **Ticket List**: View all personal tickets in an accordion layout.
+- **Ticket Interaction**: Reply to tickets and close them when resolved as admin or user.
+
+### Admin Features
+- **Dashboard**: Manage all tickets with detailed views, including user info and replies.
+- **Ticket Handling**: add admins to the support webapp (visible only to superadmins), reply and close tickets as normal admin.
+
+### Technical Features
+- **Data Storage**: MongoDB for storing tickets and user information.
+- **Email Notifications**: Powered by Resend API for ticket updates.
+- **Discord Integration**: Webhook notifications for new tickets and user replies.
 
 ---
 
-## 📌 Notes
+## 🛠 Key Enhancements
 
-- This is a **work-in-progress** prototype and not intended for production use yet.
-- Future updates will improve security, usability, and additional integrations.
+- **Formatted Tickets**: Problem types and sub-problems are stored and displayed in a readable format (e.g., "Rude Player - Bad Nick") instead of raw keys (e.g., "rudeplayer - badnick").
+- **Role-Based Visibility**: The `assignedAdmin` field is hidden from non-admin users in the ticket list API response.
+- **Consistent Design**: Updated navbar and footer use a cohesive `gray.800`/`teal.400` color scheme, aligning with the app’s dark theme.
 
-For questions or contributions, feel free to reach out!
+---
+
+## 📝 Notes
+
+- **Dependencies**: Requires `next`, `chakra-ui`, `axios`, `jsonwebtoken`, `mongodb`, and `framer-motion` (for animations).
 
 ---
