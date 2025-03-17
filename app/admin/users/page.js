@@ -87,7 +87,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <Box minH="100vh" bg="gray.900" p={{ base: 4, md: 10 }}>
+    <Box minH="100vh" p={{ base: 4, md: 10 }}>
       <VStack
         spacing={6}
         maxW="900px"

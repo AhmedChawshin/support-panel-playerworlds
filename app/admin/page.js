@@ -105,7 +105,7 @@ export default function AdminDashboard() {
   if (!user || !['admin', 'superadmin'].includes(user.role)) return null;
 
   return (
-    <Box p={10} minH="calc(100vh - 72px)" bg="gray.900">
+    <Box p={10} minH="calc(100vh - 72px)">
       <VStack spacing={8} maxW="1200px" mx="auto" align="stretch">
         <Heading size="xl" textAlign="center" color="gray.50">
           Admin Dashboard

@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
       <body>
         <ChakraProvider theme={theme}>
           <NavBar />
-          <main style={{ minHeight: 'calc(100vh - 72px)', bg: 'gray.900' }}>{children}</main>
+          <main style={{ minHeight: 'calc(100vh - 72px)'}}>{children}</main>
           <Footer />
         </ChakraProvider>
       </body>

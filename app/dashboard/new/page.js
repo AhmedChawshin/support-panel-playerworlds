@@ -26,10 +26,10 @@ export default function NewTicket() {
   const user = require('jsonwebtoken').decode(localStorage.getItem('token'));
 
   return (
-    <Box p={8} bg="gray.900" minH="calc(100vh - 64px)" color="white">
-      <Heading mb={6} fontSize="2xl" fontWeight="bold" textAlign="center">
-        Create New Ticket
-      </Heading>
+    <Box p={8}  minH="calc(100vh - 64px)" color="white">
+        <Heading mb={6} fontSize="2xl" fontWeight="bold" textAlign="center">
+          Create New Ticket
+       </Heading>
       <TicketForm userEmail={user.email} onTicketCreated={() => redirect('/dashboard/tickets')} />
     </Box>
   );

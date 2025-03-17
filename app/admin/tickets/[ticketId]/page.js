@@ -136,7 +136,7 @@ export default function TicketPage() {
 
   if (loading) {
     return (
-      <Flex minH="100vh" bg="gray.900" align="center" justify="center">
+      <Flex minH="100vh"align="center" justify="center">
         <Spinner size="xl" color="teal.400" thickness="4px" speed="0.65s" />
       </Flex>
     );
@@ -145,7 +145,7 @@ export default function TicketPage() {
   if (!ticket || !role) return null;
 
   return (
-    <Box minH="100vh" bg="gray.900" py={8} px={{ base: 4, md: 10 }}>
+    <Box minH="100vh" py={8} px={{ base: 4, md: 10 }}>
       <ScaleFade initialScale={0.9} in={true}>
         <VStack
           spacing={6}

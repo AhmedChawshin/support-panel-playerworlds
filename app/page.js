@@ -15,7 +15,6 @@ const fadeIn = keyframes`
 
 const LoadingSpinner = () => (
   <Box
-    bg="gray.900"
     h="100vh"
     display="flex"
     alignItems="center"
@@ -52,25 +51,7 @@ export default function Home() {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <Box position="relative" h="100vh" overflow="hidden" bg="gray.900">
-      {/* Background Image */}
-      <Image
-        src="/images/background_graalwebsite.jpg"
-        alt="Support Background"
-        fill
-        style={{ objectFit: 'cover', zIndex: 0 }}
-        quality={85}
-        priority
-      />
-
-      {/* Overlay */}
-      <Box
-        position="absolute"
-        inset={0}
-        bg="rgba(0, 0, 0, 0.75)" // Darker overlay for better contrast
-        zIndex={1}
-      />
-
+    <Box position="relative" h="100vh" overflow="hidden">
       {/* Content */}
       <VStack
         position="relative"

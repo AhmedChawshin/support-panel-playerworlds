@@ -9,7 +9,10 @@ const theme = extendTheme({
   styles: {
     global: {
       body: {
-        bg: 'gray.900',
+        backgroundImage: 'url("/images/background_shaded.webp")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center', 
+        minHeight: '100vh', // Ensures full-screen background
         color: 'gray.50',
         fontFamily: "'Inter', sans-serif",
         lineHeight: '1.6',

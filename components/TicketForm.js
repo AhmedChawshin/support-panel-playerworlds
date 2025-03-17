@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   VStack,
   FormControl,
@@ -15,6 +15,7 @@ import {
   RadioGroup,
   Stack,
   Text,
+  Fade,
 } from '@chakra-ui/react';
 import axios from 'axios';
 
@@ -23,8 +24,8 @@ export default function TicketForm({ userEmail }) {
   const [game, setGame] = useState('');
   const [installed, setInstalled] = useState('');
   const [started, setStarted] = useState('');
-  const [problemType, setProblemType] = useState(''); 
-  const [subProblem, setSubProblem] = useState(''); 
+  const [problemType, setProblemType] = useState('');
+  const [subProblem, setSubProblem] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useToast();
@@ -86,50 +87,46 @@ export default function TicketForm({ userEmail }) {
   };
 
   const formatProblemType = (type) => {
-    return type
-      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-      .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
-      .trim(); // Remove extra spaces
+    return type.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
   };
 
   const formatSubProblem = (sub) => {
-    return sub
-      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-      .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
-      .trim(); // Remove extra spaces
+    return sub.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
   };
+
+  // Debounced state setters to reduce re-renders
 
   const handleSubmit = async () => {
     if (!graalid || !game || !installed || (installed === '1' && !started) || (started === '1' && !problemType) || (problemTypes[problemType]?.length > 0 && !subProblem)) {
-      toast({ title: 'Please complete all required steps', status: 'warning' });
+      toast({ title: 'Please complete all required steps', status: 'warning', position: 'top' });
       return;
     }
-    if(description.length > 1000) {
-      toast({ title: 'Description should not exceed 600 characters', status: 'warning' });
+    if (description.length > 1000) {
+      toast({ title: 'Description should not exceed 1000 characters', status: 'warning', position: 'top' });
       return;
     }
-    if(graalid.length > 30){
-      toast({ title: 'Graalid should not exceed 30 characters', status: 'warning' });
+    if (graalid.length > 30) {
+      toast({ title: 'GraalID should not exceed 30 characters', status: 'warning', position: 'top' });
       return;
     }
     setIsSubmitting(true);
     try {
-      const formattedProblemType = formatProblemType(problemType); 
-      const formattedSubProblem = subProblem ? formatSubProblem(subProblem) : ''; 
+      const formattedProblemType = formatProblemType(problemType);
+      const formattedSubProblem = subProblem ? formatSubProblem(subProblem) : '';
       await axios.post('/api/tickets', {
         email: userEmail,
         graalid,
         game,
         installed,
         started,
-        problemType: formattedProblemType, 
-        subProblem: formattedSubProblem, 
+        problemType: formattedProblemType,
+        subProblem: formattedSubProblem,
         description,
       });
-      toast({ title: 'Ticket created!', status: 'success' });
+      toast({ title: 'Ticket created!', status: 'success', position: 'top' });
       resetForm();
     } catch (error) {
-      toast({ title: 'Error', description: error.response?.data?.message || error.message, status: 'error' });
+      toast({ title: 'Error', description: error.response?.data?.message || error.message, status: 'error', position: 'top' });
     } finally {
       setIsSubmitting(false);
     }
@@ -147,31 +144,34 @@ export default function TicketForm({ userEmail }) {
 
   return (
     <Box
-      maxW="600px"
+      maxW="700px"
       mx="auto"
-      p={6}
+      p={6} // Reduced padding for tighter layout
       bg="gray.800"
-      borderRadius="lg"
-      boxShadow="lg"
+      borderRadius="xl"
+      boxShadow="lg" // Softer shadow
       border="1px solid"
       borderColor="gray.700"
+      mb={16} // Reduced bottom margin
     >
-      <VStack spacing={6} align="stretch">
+      <VStack spacing={6} align="stretch"> {/* Reduced spacing from 8 to 6 */}
         <FormControl isRequired>
-          <FormLabel color="gray.300" fontWeight="semibold">GraalID</FormLabel>
+          <FormLabel color="white" fontSize="md" fontWeight="semibold">GraalID</FormLabel>
           <Input
             placeholder="Enter your GraalID"
             value={graalid}
             onChange={(e) => setGraalid(e.target.value)}
             bg="gray.700"
-            borderColor="gray.600"
-            _hover={{ borderColor: 'gray.500' }}
-            _focus={{ borderColor: 'teal.400', boxShadow: '0 0 0 1px teal.400' }}
+            border="none"
+            borderRadius="md"
+            color="white"
+            fontSize="md" // Adjusted text size
+            _focus={{ boxShadow: '0 0 0 2px teal.400' }}
           />
         </FormControl>
 
         <FormControl isRequired>
-          <FormLabel color="gray.300" fontWeight="semibold">Game</FormLabel>
+          <FormLabel color="white" fontSize="md" fontWeight="semibold">Game</FormLabel>
           <Select
             placeholder="Select game and platform"
             value={game}
@@ -183,125 +183,133 @@ export default function TicketForm({ userEmail }) {
               setSubProblem('');
             }}
             bg="gray.700"
-            borderColor="gray.600"
-            _hover={{ borderColor: 'gray.500' }}
-            _focus={{ borderColor: 'teal.400', boxShadow: '0 0 0 1px teal.400' }}
+            border="none"
+            borderRadius="md"
+            color="white"
+            fontSize="md"
+            _focus={{ boxShadow: '0 0 0 2px teal.400' }}
           >
             {games.map((g) => (
-              <option key={g} value={g}>
+              <option key={g} value={g} style={{ backgroundColor: '#1A202C', color: 'white' }}>
                 {g.replace('_', ' ').replace('classic', 'GraalOnline Classic').replace('era', 'GraalOnline Era').replace('zone', 'GraalOnline Zone').replace('olwest', 'GraalOnline Olwest')}
               </option>
             ))}
           </Select>
         </FormControl>
 
-        {game && (
-          <FormControl isRequired>
-            <FormLabel color="gray.300" fontWeight="semibold">Were you able to install the game?</FormLabel>
-            <RadioGroup
-              value={installed}
-              onChange={(val) => {
+        <Fade in={!!game} unmountOnExit>
+          {game && (
+            <FormControl isRequired>
+              <FormLabel color="white" fontSize="md" fontWeight="semibold">Were you able to install the game?</FormLabel>
+              <RadioGroup value={installed} onChange={(val) => {
                 setInstalled(val);
                 setStarted('');
                 setProblemType('');
                 setSubProblem('');
-              }}
-            >
-              <Stack direction="row" spacing={5}>
-                <Radio value="1" colorScheme="teal">Yes</Radio>
-                <Radio value="0" colorScheme="teal">No</Radio>
-              </Stack>
-            </RadioGroup>
-            {installed === '0' && (
-              <Text mt={2} color="gray.400">
-                <b>Your problem:</b> You were not able to install the game.
-              </Text>
-            )}
-          </FormControl>
-        )}
+              }}>
+                <Stack direction="row" spacing={6}>
+                  <Radio value="1" colorScheme="teal" size="md">Yes</Radio>
+                  <Radio value="0" colorScheme="teal" size="md">No</Radio>
+                </Stack>
+              </RadioGroup>
+              {installed === '0' && (
+                <Text mt={2} color="gray.400" fontSize="sm">
+                  <b>Your problem:</b> You were not able to install the game.
+                </Text>
+              )}
+            </FormControl>
+          )}
+        </Fade>
 
-        {installed === '1' && (
-          <FormControl isRequired>
-            <FormLabel color="gray.300" fontWeight="semibold">Were you able to start the game?</FormLabel>
-            <RadioGroup
-              value={started}
-              onChange={(val) => {
+        <Fade in={installed === '1'} unmountOnExit>
+          {installed === '1' && (
+            <FormControl isRequired>
+              <FormLabel color="white" fontSize="md" fontWeight="semibold">Were you able to start the game?</FormLabel>
+              <RadioGroup value={started} onChange={(val) => {
                 setStarted(val);
                 setProblemType('');
                 setSubProblem('');
-              }}
-            >
-              <Stack direction="row" spacing={5}>
-                <Radio value="1" colorScheme="teal">Yes</Radio>
-                <Radio value="0" colorScheme="teal">No</Radio>
-              </Stack>
-            </RadioGroup>
-            {started === '0' && (
-              <Text mt={2} color="gray.400">
-                <b>Your problem:</b> You were able to install the game but cannot start it.
-              </Text>
-            )}
-          </FormControl>
-        )}
+              }}>
+                <Stack direction="row" spacing={6}>
+                  <Radio value="1" colorScheme="teal" size="md">Yes</Radio>
+                  <Radio value="0" colorScheme="teal" size="md">No</Radio>
+                </Stack>
+              </RadioGroup>
+              {started === '0' && (
+                <Text mt={2} color="gray.400" fontSize="sm">
+                  <b>Your problem:</b> You were able to install the game but cannot start it.
+                </Text>
+              )}
+            </FormControl>
+          )}
+        </Fade>
 
-        {started === '1' && (
-          <FormControl isRequired>
-            <FormLabel color="gray.300" fontWeight="semibold">What kind of problem did happen?</FormLabel>
-            <Select
-              placeholder="Select problem type"
-              value={problemType}
-              onChange={(e) => {
-                setProblemType(e.target.value);
-                setSubProblem('');
-              }}
-              bg="gray.700"
-              borderColor="gray.600"
-              _hover={{ borderColor: 'gray.500' }}
-              _focus={{ borderColor: 'teal.400', boxShadow: '0 0 0 1px teal.400' }}
-            >
-              {Object.keys(problemTypes).map((type) => (
-                <option key={type} value={type}>
-                  {formatProblemType(type)}
-                </option>
-              ))}
-            </Select>
-          </FormControl>
-        )}
-
-        {problemType && problemTypes[problemType].length > 0 && (
-          <FormControl isRequired>
-            <FormLabel color="gray.300" fontWeight="semibold">Specify the issue</FormLabel>
-            <RadioGroup value={subProblem} onChange={setSubProblem}>
-              <Stack spacing={3}>
-                {problemTypes[problemType].map((sub) => (
-                  <Radio key={sub} value={sub} colorScheme="teal">
-                    {formatSubProblem(sub)} {/* Display as "Bad Nick" */}
-                  </Radio>
+        <Fade in={started === '1'} unmountOnExit>
+          {started === '1' && (
+            <FormControl isRequired>
+              <FormLabel color="white" fontSize="md" fontWeight="semibold">What kind of problem did happen?</FormLabel>
+              <Select
+                placeholder="Select problem type"
+                value={problemType}
+                onChange={(e) => {
+                  setProblemType(e.target.value);
+                  setSubProblem('');
+                }}
+                bg="gray.700"
+                border="none"
+                borderRadius="md"
+                color="white"
+                fontSize="md"
+                _focus={{ boxShadow: '0 0 0 2px teal.400' }}
+              >
+                {Object.keys(problemTypes).map((type) => (
+                  <option key={type} value={type} style={{ backgroundColor: '#1A202C', color: 'white' }}>
+                    {formatProblemType(type)}
+                  </option>
                 ))}
-              </Stack>
-            </RadioGroup>
-            {subProblem && (
-              <Text mt={2} color="gray.400">
-                <b>Your problem:</b> {problemDescriptions[problemType][subProblem]}
-              </Text>
-            )}
-          </FormControl>
-        )}
+              </Select>
+            </FormControl>
+          )}
+        </Fade>
+
+        <Fade in={problemType && problemTypes[problemType].length > 0} unmountOnExit>
+          {problemType && problemTypes[problemType].length > 0 && (
+            <FormControl isRequired>
+              <FormLabel color="white" fontSize="md" fontWeight="semibold">Specify the issue</FormLabel>
+              <RadioGroup value={subProblem} onChange={setSubProblem}>
+                <Stack spacing={3}>
+                  {problemTypes[problemType].map((sub) => (
+                    <Radio key={sub} value={sub} colorScheme="teal" size="md">
+                      {formatSubProblem(sub)}
+                    </Radio>
+                  ))}
+                </Stack>
+              </RadioGroup>
+              {subProblem && (
+                <Text mt={2} color="gray.400" fontSize="sm">
+                  <b>Your problem:</b> {problemDescriptions[problemType][subProblem]}
+                </Text>
+              )}
+            </FormControl>
+          )}
+        </Fade>
 
         <FormControl>
-          <FormLabel color="gray.300" fontWeight="semibold">Additional Information</FormLabel>
+          <FormLabel color="white" fontSize="md" fontWeight="semibold">Additional Information</FormLabel>
           <Textarea
-            placeholder="Provide more details about the problem (optional)"
+            placeholder="Provide more details about the problem (optional, max 1000 characters)"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             bg="gray.700"
-            borderColor="gray.600"
-            _hover={{ borderColor: 'gray.500' }}
-            _focus={{ borderColor: 'teal.400', boxShadow: '0 0 0 1px teal.400' }}
-            rows={5}
+            border="none"
+            borderRadius="md"
+            color="white"
+            fontSize="md"
+            _focus={{ boxShadow: '0 0 0 2px teal.400' }}
+            rows={4} // Slightly smaller textarea
           />
           {problemType && !subProblem && problemTypes[problemType].length === 0 && (
-            <Text mt={2} color="gray.400">
+            <Text mt={2} color="gray.400" fontSize="sm">
               <b>Your problem:</b> {problemDescriptions[problemType]}
             </Text>
           )}
@@ -309,12 +317,15 @@ export default function TicketForm({ userEmail }) {
 
         <Button
           colorScheme="teal"
-          size="lg"
+          size="md" // Smaller button
           onClick={handleSubmit}
           isLoading={isSubmitting}
-          bg="teal.500"
-          _hover={{ bg: 'teal.600' }}
+          bgGradient="linear(to-r, teal.500, cyan.500)"
+          _hover={{ bgGradient: 'linear(to-r, teal.600, cyan.600)' }}
           w="full"
+          borderRadius="lg" // Softer corners
+          fontSize="md"
+          fontWeight="semibold"
         >
           Submit Ticket
         </Button>

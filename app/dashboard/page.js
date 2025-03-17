@@ -82,7 +82,7 @@ export default function Dashboard() {
   }
 
   return (
-    <Box minH="calc(100vh - 72px)" bg="gray.900" py={12} px={{ base: 4, md: 8 }}>
+    <Box minH="calc(100vh - 72px)" py={12} px={{ base: 4, md: 8 }}>
       <ScaleFade initialScale={0.95} in={true}>
         <VStack
           spacing={8}
