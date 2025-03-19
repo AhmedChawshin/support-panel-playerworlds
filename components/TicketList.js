@@ -22,6 +22,8 @@ import { useState, useCallback, memo } from 'react';
 // Memoized Ticket Item to prevent unnecessary re-renders
 const TicketItem = memo(({ ticket, userEmail, onReply }) => {
   const [reply, setReply] = useState('');
+  const [isReplying, setIsReplying] = useState(false); // Loading state for reply
+  const [isClosing, setIsClosing] = useState(false);   // Loading state for close
   const toast = useToast();
 
   // Debounced reply handler to reduce state updates
@@ -35,6 +37,7 @@ const TicketItem = memo(({ ticket, userEmail, onReply }) => {
       toast({ title: 'Reply cannot be empty', status: 'warning', position: 'top' });
       return;
     }
+    setIsReplying(true); // Disable button
     try {
       await axios.put('/api/tickets', { ticketId: ticket._id, response: reply });
       toast({ title: 'Reply sent', status: 'success', position: 'top' });
@@ -47,10 +50,13 @@ const TicketItem = memo(({ ticket, userEmail, onReply }) => {
         status: 'error',
         position: 'top',
       });
+    } finally {
+      setIsReplying(false); // Re-enable button
     }
   };
 
   const handleClose = async () => {
+    setIsClosing(true); // Disable button
     try {
       await axios.put('/api/tickets', { ticketId: ticket._id, status: 'closed' });
       toast({ title: 'Ticket closed', status: 'success', position: 'top' });
@@ -62,6 +68,8 @@ const TicketItem = memo(({ ticket, userEmail, onReply }) => {
         status: 'error',
         position: 'top',
       });
+    } finally {
+      setIsClosing(false); // Re-enable button
     }
   };
 
@@ -160,7 +168,8 @@ const TicketItem = memo(({ ticket, userEmail, onReply }) => {
                   colorScheme="teal"
                   size="sm"
                   onClick={handleReply}
-                  isDisabled={!reply.trim()}
+                  isDisabled={!reply.trim() || isReplying} // Disable if empty or loading
+                  isLoading={isReplying} // Show loading spinner
                   _hover={{ bg: 'teal.500' }}
                 >
                   Reply
@@ -171,6 +180,8 @@ const TicketItem = memo(({ ticket, userEmail, onReply }) => {
                     size="sm"
                     colorScheme="red"
                     onClick={handleClose}
+                    isDisabled={isClosing} // Disable if loading
+                    isLoading={isClosing} // Show loading spinner
                     _hover={{ bg: 'red.600' }}
                   >
                     Close Ticket

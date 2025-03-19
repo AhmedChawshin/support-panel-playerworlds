@@ -29,6 +29,8 @@ export default function TicketPage() {
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState(null);
+  const [isReplying, setIsReplying] = useState(false); // Tracks reply submission
+  const [isClosing, setIsClosing] = useState(false);   // Tracks close submission
   const toast = useToast();
 
   useEffect(() => {
@@ -76,6 +78,7 @@ export default function TicketPage() {
       toast({ title: 'Reply cannot be empty', status: 'warning', position: 'top' });
       return;
     }
+    setIsReplying(true); // Disable the reply button and show loading
     try {
       await axios.put(
         '/api/tickets',
@@ -90,7 +93,7 @@ export default function TicketPage() {
       );
       toast({ title: 'Reply sent', status: 'success', position: 'top' });
       setReply('');
-      fetchTicket(); // Refresh ticket data instead of redirecting
+      fetchTicket(); // Refresh ticket data
     } catch (error) {
       toast({
         title: 'Error',
@@ -98,10 +101,13 @@ export default function TicketPage() {
         status: 'error',
         position: 'top',
       });
+    } finally {
+      setIsReplying(false); // Re-enable the reply button
     }
   };
 
   const handleClose = async () => {
+    setIsClosing(true); // Disable the close button and show loading
     try {
       await axios.put(
         '/api/tickets',
@@ -114,7 +120,7 @@ export default function TicketPage() {
         }
       );
       toast({ title: 'Ticket closed', status: 'success', position: 'top' });
-      fetchTicket(); // Refresh ticket data instead of redirecting
+      fetchTicket(); // Refresh ticket data
     } catch (error) {
       toast({
         title: 'Error',
@@ -122,6 +128,8 @@ export default function TicketPage() {
         status: 'error',
         position: 'top',
       });
+    } finally {
+      setIsClosing(false); // Re-enable the close button
     }
   };
 
@@ -136,7 +144,7 @@ export default function TicketPage() {
 
   if (loading) {
     return (
-      <Flex minH="100vh"align="center" justify="center">
+      <Flex minH="100vh" align="center" justify="center">
         <Spinner size="xl" color="teal.400" thickness="4px" speed="0.65s" />
       </Flex>
     );
@@ -333,7 +341,8 @@ export default function TicketPage() {
                   size="md"
                   flex="1"
                   onClick={handleReply}
-                  isDisabled={!reply.trim()}
+                  isLoading={isReplying} // Shows loading spinner during reply
+                  isDisabled={isReplying || !reply.trim()} // Disables during reply or if empty
                   bg="teal.600"
                   borderRadius="md"
                   boxShadow="md"
@@ -348,6 +357,8 @@ export default function TicketPage() {
                   size="md"
                   flex="1"
                   onClick={handleClose}
+                  isLoading={isClosing} // Shows loading spinner during close
+                  isDisabled={isClosing} // Disables during close
                   variant="outline"
                   borderColor="red.500"
                   borderRadius="md"

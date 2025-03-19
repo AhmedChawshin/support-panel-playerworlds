@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import {
   VStack,
   FormControl,
@@ -27,7 +27,7 @@ export default function TicketForm({ userEmail }) {
   const [problemType, setProblemType] = useState('');
   const [subProblem, setSubProblem] = useState('');
   const [description, setDescription] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Controls button state
   const toast = useToast();
 
   const games = [
@@ -94,9 +94,8 @@ export default function TicketForm({ userEmail }) {
     return sub.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
   };
 
-  // Debounced state setters to reduce re-renders
-
   const handleSubmit = async () => {
+    // Validation checks
     if (!graalid || !game || !installed || (installed === '1' && !started) || (started === '1' && !problemType) || (problemTypes[problemType]?.length > 0 && !subProblem)) {
       toast({ title: 'Please complete all required steps', status: 'warning', position: 'top' });
       return;
@@ -109,7 +108,9 @@ export default function TicketForm({ userEmail }) {
       toast({ title: 'GraalID should not exceed 30 characters', status: 'warning', position: 'top' });
       return;
     }
-    setIsSubmitting(true);
+
+    setIsSubmitting(true); // Disable the button and show loading state
+
     try {
       const formattedProblemType = formatProblemType(problemType);
       const formattedSubProblem = subProblem ? formatSubProblem(subProblem) : '';
@@ -126,9 +127,14 @@ export default function TicketForm({ userEmail }) {
       toast({ title: 'Ticket created!', status: 'success', position: 'top' });
       resetForm();
     } catch (error) {
-      toast({ title: 'Error', description: error.response?.data?.message || error.message, status: 'error', position: 'top' });
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || error.message,
+        status: 'error',
+        position: 'top',
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Re-enable the button only after API response
     }
   };
 
@@ -146,15 +152,15 @@ export default function TicketForm({ userEmail }) {
     <Box
       maxW="700px"
       mx="auto"
-      p={6} // Reduced padding for tighter layout
+      p={6}
       bg="gray.800"
       borderRadius="xl"
-      boxShadow="lg" // Softer shadow
+      boxShadow="lg"
       border="1px solid"
       borderColor="gray.700"
-      mb={16} // Reduced bottom margin
+      mb={16}
     >
-      <VStack spacing={6} align="stretch"> {/* Reduced spacing from 8 to 6 */}
+      <VStack spacing={6} align="stretch">
         <FormControl isRequired>
           <FormLabel color="white" fontSize="md" fontWeight="semibold">GraalID</FormLabel>
           <Input
@@ -165,7 +171,7 @@ export default function TicketForm({ userEmail }) {
             border="none"
             borderRadius="md"
             color="white"
-            fontSize="md" // Adjusted text size
+            fontSize="md"
             _focus={{ boxShadow: '0 0 0 2px teal.400' }}
           />
         </FormControl>
@@ -306,7 +312,7 @@ export default function TicketForm({ userEmail }) {
             color="white"
             fontSize="md"
             _focus={{ boxShadow: '0 0 0 2px teal.400' }}
-            rows={4} // Slightly smaller textarea
+            rows={4}
           />
           {problemType && !subProblem && problemTypes[problemType].length === 0 && (
             <Text mt={2} color="gray.400" fontSize="sm">
@@ -317,13 +323,14 @@ export default function TicketForm({ userEmail }) {
 
         <Button
           colorScheme="teal"
-          size="md" // Smaller button
+          size="md"
           onClick={handleSubmit}
-          isLoading={isSubmitting}
+          isLoading={isSubmitting} 
+          isDisabled={isSubmitting} 
           bgGradient="linear(to-r, teal.500, cyan.500)"
           _hover={{ bgGradient: 'linear(to-r, teal.600, cyan.600)' }}
           w="full"
-          borderRadius="lg" // Softer corners
+          borderRadius="lg"
           fontSize="md"
           fontWeight="semibold"
         >
