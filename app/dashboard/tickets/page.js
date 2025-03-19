@@ -21,6 +21,14 @@ export default function Tickets() {
     const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     setToken(storedToken);
     setIsTokenChecked(true); // Mark token check as complete
+
+    if (storedToken) {
+      const user = require('jsonwebtoken').decode(storedToken);
+      // Redirect superadmin and admin to dashboard
+      if (user && (user.role === 'superadmin' || user.role === 'admin')) {
+        redirect('/dashboard');
+      }
+    }
   }, []);
 
   useEffect(() => {
