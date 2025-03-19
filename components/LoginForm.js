@@ -17,23 +17,21 @@ export default function LoginForm({ onLogin }) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [step, setStep] = useState('email');
-  const [resendCooldown, setResendCooldown] = useState(0); // Cooldown in seconds
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isLoading, setIsLoading] = useState(false); // New loading state
   const toast = useToast();
 
-  // Restrict email input to valid characters and no spaces
   const handleEmailChange = (e) => {
     const value = e.target.value;
     const sanitizedValue = value.replace(/[^a-zA-Z0-9@.\-_+]/g, '');
     setEmail(sanitizedValue);
   };
 
-  // Validate email format
   const isValidEmail = () => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
   };
 
-  // Handle sending the initial email or resending
   const handleEmailSubmit = async (isResend = false) => {
     if (!isValidEmail()) {
       toast({
@@ -44,12 +42,14 @@ export default function LoginForm({ onLogin }) {
       });
       return;
     }
+    
+    setIsLoading(true); // Disable buttons
     try {
       await axios.post('/api/auth', { email });
       if (!isResend) {
-        setStep('code'); // Only change step on initial send
+        setStep('code');
       }
-      setResendCooldown(60); // Start 60-second cooldown
+      setResendCooldown(60);
       toast({
         title: isResend ? 'Code resent' : 'Code sent',
         status: 'success',
@@ -62,10 +62,13 @@ export default function LoginForm({ onLogin }) {
         status: 'error',
         position: 'top',
       });
+    } finally {
+      setIsLoading(false); // Re-enable buttons
     }
   };
 
   const handleCodeSubmit = async () => {
+    setIsLoading(true); // Disable buttons
     try {
       const { data } = await axios.post('/api/auth', { email, code });
       localStorage.setItem('token', data.token);
@@ -73,16 +76,17 @@ export default function LoginForm({ onLogin }) {
       onLogin(data.token);
     } catch (error) {
       toast({ title: 'Invalid code', status: 'error', position: 'top' });
+    } finally {
+      setIsLoading(false); // Re-enable buttons
     }
   };
 
-  // Cooldown timer
   useEffect(() => {
     if (resendCooldown > 0) {
       const timer = setInterval(() => {
         setResendCooldown((prev) => prev - 1);
       }, 1000);
-      return () => clearInterval(timer); // Cleanup on unmount or when cooldown changes
+      return () => clearInterval(timer);
     }
   }, [resendCooldown]);
 
@@ -122,7 +126,8 @@ export default function LoginForm({ onLogin }) {
               size="md"
               w="full"
               type="submit"
-              isDisabled={!isValidEmail()}
+              isDisabled={!isValidEmail() || isLoading} // Disable when loading
+              isLoading={isLoading} // Show loading spinner
             >
               Send Code
             </Button>
@@ -149,7 +154,8 @@ export default function LoginForm({ onLogin }) {
                 size="md"
                 w="full"
                 type="submit"
-                isDisabled={!code.trim()}
+                isDisabled={!code.trim() || isLoading} // Disable when loading
+                isLoading={isLoading} // Show loading spinner
               >
                 Verify
               </Button>
@@ -157,8 +163,8 @@ export default function LoginForm({ onLogin }) {
                 variant="outline"
                 size="md"
                 colorScheme="teal"
-                onClick={() => handleEmailSubmit(true)} // Resend flag
-                isDisabled={resendCooldown > 0}
+                onClick={() => handleEmailSubmit(true)}
+                isDisabled={resendCooldown > 0 || isLoading} // Disable when loading
                 w="full"
               >
                 {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Code'}
